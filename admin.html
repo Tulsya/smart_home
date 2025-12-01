@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Админ-панель Smart Home</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+        .container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .panel { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .panel-header { border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; }
+        .type-btn { display: block; width: 100%; padding: 10px; margin: 5px 0; background: #f8f9fa; border: none; border-radius: 5px; cursor: pointer; }
+        .type-btn.active { background: #007bff; color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .add-button { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; }
+        #sensorData { height: 400px; position: relative; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Левая панель: управление -->
+        <div class="panel">
+            <div class="panel-header"><h2>Управление</h2></div>
+            <div class="selector">
+                <button class="type-btn active" data-type="buildings">ЗДАНИЯ</button>
+                <button class="type-btn" data-type="rooms">ПОМЕЩЕНИЯ</button>
+                <button class="type-btn" data-type="devices">УСТРОЙСТВА</button>
+                <button class="type-btn" data-type="controllers">КОНТРОЛЛЕРЫ</button>
+                <button class="type-btn" data-type="sensors">ДАТЧИКИ</button>
+            </div>
+            <div class="panel-content">
+                <table id="dataTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+                <button class="add-button" onclick="openForm()">➕ Добавить</button>
+            </div>
+        </div>
+        
+        <!-- Правая панель: данные датчиков -->
+        <div class="panel">
+            <div class="panel-header"><h2>📈 Данные датчиков (реального времени)</h2></div>
+            <div id="sensorData">
+                anvas id="sensorChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8082/api';
+        let currentType = 'buildings';
+        let chart;
+
+        // Загрузка данных
+        async function loadData(type) {
+            try {
+                const response = await fetch(`${API_BASE}/${type}`);
+                const data = await response.json();
+                renderTable(data, type);
+            } catch(e) { console.error(e); }
+        }
+
+        // Отрисовка таблицы
+        function renderTable(data, type) {
+            const thead = document.getElementById('tableHead');
+            const tbody = document.getElementById('tableBody');
+            
+            // Заголовки (упрощенно)
+            thead.innerHTML = '<tr><th>ID</th><th>Название</th><th>Действия</th></tr>';
+            tbody.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = tbody.insertRow();
+                row.innerHTML = `<td>${item.id || '-'}</td><td>${item.name || item.type || '-'}</td><td>✏️</td>`;
+            });
+        }
+
+        // График датчиков
+        async function updateSensors() {
+            try {
+                const response = await fetch(`${API_BASE}/sensors/data`);
+                const data = await response.json();
+                updateChart(data);
+            } catch(e) { console.error(e); }
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            if (!chart) {
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [{ label: 'Температура', data: [], borderColor: '#ff6384' }] },
+                    options: { scales: { y: { beginAtZero: true } } }
+                });
+            }
+            chart.data.labels = data.map(d => d.time);
+            chart.data.datasets[0].data = data.map(d => parseFloat(d.value));
+            chart.update();
+        }
+
+        // Навигация
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelector('.type-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                currentType = btn.dataset.type;
+                loadData(currentType);
+            };
+        });
+
+        // Инициализация
+        loadData('buildings');
+        updateSensors();
+        setInterval(updateSensors, 5000); // Обновление каждые 5 сек
+    </script>
+</body>
+</html>
