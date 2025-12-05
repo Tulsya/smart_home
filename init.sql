@@ -135,9 +135,9 @@ ALTER SEQUENCE public.controller_id_seq OWNED BY public.controller.id;
 --
 
 CREATE TABLE public.device (
-    id integer NOT NULL,
+    id SERIAL PRIMARY KEY,
     name character varying(100) NOT NULL,
-    room_id integer NOT NULL
+    room_id integer
 );
 
 

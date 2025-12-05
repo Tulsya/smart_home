@@ -205,7 +205,8 @@
                 <button type="button" onclick="incRoom(this)">Санузел</button>
                 <span class="count">0</span>
             </div>
-            <div class="room-hint">💡 Левый клик по кнопке - добавить комнату. Правый клик по строке - убрать комнату</div>
+            <div class="room-hint">💡 Левый клик по кнопке - добавить комнату. Правый клик по строке - убрать комнату
+            </div>
         </div>
 
         <h3>Структура планировки (JSON)</h3>
@@ -226,9 +227,9 @@
             <button onclick="addDevice()">➕ Добавить устройство</button>
         </div>
         <div id="devicesList" class="devices-grid"></div>
-        
-        <button id="saveBtn" onclick="saveSetup()">💾 Сохранить настройку</button>
-        
+
+        <button id="save-setup-btn" onclick="saveSetup()">💾 Сохранить настройку</button>
+
         <div class="navigation-buttons">
             <button onclick="prevStep()">← Назад</button>
             <div></div>
@@ -250,19 +251,19 @@
                     return;
                 }
             }
-            
+
             // Проверка перед переходом на шаг 3
             if (currentStep === 2) {
                 updateFloorplanJSON();
                 const floorplanJSON = document.getElementById('floorplanJSON').value;
                 const floorplanObj = JSON.parse(floorplanJSON || '{"rooms":[]}');
-                
+
                 if (floorplanObj.rooms.length === 0) {
                     alert('Пожалуйста, добавьте хотя бы одну комнату!');
                     return;
                 }
             }
-            
+
             document.getElementById(`step${currentStep}`).classList.remove('active');
             currentStep++;
             document.getElementById(`step${currentStep}`).classList.add('active');
@@ -330,8 +331,8 @@
                 alert('Введите название устройства!');
                 return;
             }
-            devices.push({ 
-                name: name, 
+            devices.push({
+                name: name,
                 id: Date.now() + Math.random()
             });
             document.getElementById('deviceName').value = '';
@@ -358,50 +359,56 @@
         }
 
         async function saveSetup() {
-            if (devices.length === 0) {
-                alert('Добавьте хотя бы одно устройство!');
-                return;
-            }
-            
-            if (!document.getElementById('floorplanJSON').value) {
-                updateFloorplanJSON();
-            }
-
-            const setup = {
-                user_id: 1,
-                device_id: 1,
-                payment_type: document.getElementById('paymentType').value,
-                floorplan: document.getElementById('floorplanJSON').value,
-                devices: devices
-            };
-
             try {
-                const response = await fetch(`${API_BASE}/user/setup`, {
+                // 1. Данные устройства
+                const deviceName = document.getElementById('deviceName').value.trim() || 'Умная лампочка Яндекс, E27, 806 лм';
+                const roomId = 1;
+
+                // 2. Создаём устройство
+                const deviceResp = await fetch(`${API_BASE}/devices`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(setup)
+                    headers: { 'Content-Type': 'application/json; charset=utf-8' },  // ← добавь charset=utf-8
+                    body: JSON.stringify({
+                        name: deviceName,
+                        room_id: roomId
+                    })
                 });
-                if (response.ok) {
-                    alert('✅ Настройка сохранена в БД!');
-                } else {
-                    alert('❌ Ошибка сервера: ' + response.status);
+
+
+                if (!deviceResp.ok) {
+                    alert('Ошибка создания устройства: ' + deviceResp.status);
+                    return;
                 }
+
+                const device = await deviceResp.json();
+
+                // 3. Сохраняем настройку с ID созданного устройства
+                const floorplanData = document.getElementById('floorplanJSON').value;
+
+                const setupResp = await fetch(`${API_BASE}/user/setup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json; charset=utf-8' },  // ← добавь charset=utf-8
+                    body: JSON.stringify({
+                        user_id: 1,
+                        device_id: device.id,
+                        payment_type: document.getElementById('paymentType').value,
+                        floorplan: floorplanData
+                    })
+                });
+
+                if (!setupResp.ok) {
+                    alert('Ошибка сохранения настройки: ' + setupResp.status);
+                    return;
+                }
+
+                alert('✅ Настройка сохранена! Устройство ID: ' + device.id);
+
             } catch (e) {
-                alert('❌ Ошибка сети: ' + e.message);
+                console.error(e);
+                alert('Ошибка: ' + e.message);
             }
         }
 
-        document.getElementById('deviceName').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addDevice();
-            }
-        });
-
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            updateFloorplanJSON();
-        });
     </script>
 
 </body>

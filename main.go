@@ -141,7 +141,7 @@ func main() {
 		InfluxToken:  "BJ2IlPds_hVcKrQDD249VSsYnXqENqUuyDc4IdRsntPCDbgBL3-Ie3jLOhiMrb_Psdlo8P2H1u78HO7SF1_Urw==",
 		InfluxOrg:    "smart_home",
 		InfluxBucket: "sensor_data",
-		PostgresURL:  "host=127.0.0.1 port=5433 user=postgres dbname=smart_home_db password=Masha2002 sslmode=disable",
+		PostgresURL: "host=127.0.0.1 port=5433 user=postgres dbname=smart_home password=Masha2002 sslmode=disable",
 		HTTPPort:     ":8082",
 		MetricsPort:  ":2114",
 	}
@@ -150,7 +150,6 @@ func main() {
 	initPostgres(cfg.PostgresURL)
 	defer psqlConn.Close()
 
-	// ДОБАВЬТЕ ЭТУ СТРОКУ
 	initTables()
 
 	initInfluxDB(cfg.InfluxURL, cfg.InfluxToken)
@@ -196,17 +195,23 @@ func initMetrics() {
 }
 
 func initPostgres(dsn string) {
-	var err error
-	psqlConn, err = sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatalf("Ошибка подключения к PostgreSQL: %v", err)
-	}
-
-	if err := psqlConn.Ping(); err != nil {
-		log.Fatalf("Ошибка пинга PostgreSQL: %v", err)
-	}
-
-	log.Println("✓ Подключение к PostgreSQL успешно")
+    var err error
+    psqlConn, err = sql.Open("postgres", dsn)
+    if err != nil {
+        log.Fatalf("Ошибка подключения к PostgreSQL: %v", err)
+    }
+    
+    // Установи кодировку
+    _, err = psqlConn.Exec("SET client_encoding = 'UTF8'")
+    if err != nil {
+        log.Printf("Предупреждение: Ошибка установки кодировки: %v", err)
+    }
+    
+    if err := psqlConn.Ping(); err != nil {
+        log.Fatalf("Ошибка пинга PostgreSQL: %v", err)
+    }
+    
+    log.Println("✓ Подключение к PostgreSQL успешно")
 }
 
 func initTables() {
@@ -627,9 +632,20 @@ func startAPIServer(port string) {
 		}
 	})
 
-	// НОВЫЕ МАРШРУТЫ ДЛЯ USER SETUP
-	mux.HandleFunc("/api/user/setup", createUserSetup)
-	mux.HandleFunc("/api/user/devices", getUserDevices)
+	    mux.HandleFunc("/api/devices", func(w http.ResponseWriter, r *http.Request) {
+        switch r.Method {
+        case http.MethodGet:
+            getDevices(w, r)
+        case http.MethodPost:
+            createDevice(w, r)
+        default:
+            http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+        }
+    })
+
+    // НОВЫЕ МАРШРУТЫ ДЛЯ USER SETUP
+    mux.HandleFunc("/api/user/setup", createUserSetup)
+    mux.HandleFunc("/api/user/devices", getUserDevices)
 
 	mux.HandleFunc("/api/health", getHealth)
 
@@ -646,3 +662,60 @@ func startAPIServer(port string) {
 
 	log.Fatal(server.ListenAndServe())
 }
+
+// ============ REST API HANDLERS - DEVICES ============
+
+func createDevice(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+        return
+    }
+
+    var d Device
+    if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
+        http.Error(w, "Неверный JSON", http.StatusBadRequest)
+        return
+    }
+
+    err := psqlConn.QueryRow(
+        "INSERT INTO device (name, room_id, user_id, worker_id) VALUES ($1, $2, $3, $4) RETURNING id",
+        d.Name, d.RoomID, nil, nil,
+    ).Scan(&d.ID)
+
+    if err != nil {
+        log.Printf("Ошибка при вставке в БД: %v", err)
+        http.Error(w, fmt.Sprintf("Ошибка БД: %v", err), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(d)
+}
+
+func getDevices(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodGet {
+        http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+        return
+    }
+
+    rows, err := psqlConn.Query("SELECT id, name, room_id FROM device")
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Ошибка БД: %v", err), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    devices := []Device{}
+    for rows.Next() {
+        var d Device
+        if err := rows.Scan(&d.ID, &d.Name, &d.RoomID); err != nil {
+            continue
+        }
+        devices = append(devices, d)
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(devices)
+}
+
