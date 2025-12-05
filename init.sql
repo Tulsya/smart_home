@@ -129,7 +129,6 @@ ALTER SEQUENCE public.controller_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE public.controller_id_seq OWNED BY public.controller.id;
 
-
 --
 -- Name: device; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -982,10 +981,211 @@ ALTER TABLE ONLY public.state
 ALTER TABLE ONLY public.variables
     ADD CONSTRAINT variables_controller_id_fkey FOREIGN KEY (controller_id) REFERENCES public.controller(id) ON DELETE CASCADE;
 
+DROP TABLE IF EXISTS users CASCADE;
 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Создать индексы для быстрого поиска
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+
+-- Вставить тестовых пользователей
+-- Username: user1, Password: 123456
+INSERT INTO users (username, email, password, role) VALUES (
+    'user1',
+    'user1@test.com',
+    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    'user'
+);
+
+-- Username: admin, Password: admin123
+INSERT INTO users (username, email, password, role) VALUES (
+    'admin',
+    'admin@test.com',
+    '0bfe935e70e1d2fbc247e7cd2d39e2e67ab51a4e0b9f59d2d3e8a5e8f8d5c5e1',
+    'admin'
+);
+
+-- Username: worker1, Password: worker123
+INSERT INTO users (username, email, password, role) VALUES (
+    'worker1',
+    'worker@test.com',
+    '5c99c5e8e1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6b7a8f9e0d1c2b3a4f5e6d7',
+    'worker'
+);
+
+-- Остальные таблицы как были (user_devices, etc.)
+CREATE TABLE IF NOT EXISTS user_devices (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    device_id INTEGER,
+    payment_type VARCHAR(50),
+    floorplan TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS devices (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    device_type VARCHAR(50),
+    room VARCHAR(50),
+    status VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS devi
 --
 -- PostgreSQL database dump complete
 --
+DROP TABLE IF EXISTS users CASCADE;
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Создать индексы для быстрого поиска
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+
+-- Вставить тестовых пользователей
+-- Username: user1, Password: 123456
+INSERT INTO users (username, email, password, role) VALUES (
+    'user1',
+    'user1@test.com',
+    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    'user'
+);
+
+-- Username: admin, Password: admin123
+INSERT INTO users (username, email, password, role) VALUES (
+    'admin',
+    'admin@test.com',
+    '0bfe935e70e1d2fbc247e7cd2d39e2e67ab51a4e0b9f59d2d3e8a5e8f8d5c5e1',
+    'admin'
+);
+
+-- Username: worker1, Password: worker123
+INSERT INTO users (username, email, password, role) VALUES (
+    'worker1',
+    'worker@test.com',
+    '5c99c5e8e1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6b7a8f9e0d1c2b3a4f5e6d7',
+    'worker'
+);
+
+-- Остальные таблицы как были (user_devices, etc.)
+CREATE TABLE IF NOT EXISTS user_devices (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    device_id INTEGER,
+    payment_type VARCHAR(50),
+    floorplan TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS devices (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    device_type VARCHAR(50),
+    room VARCHAR(50),
+    status VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS device_logs (
+    id SERIAL PRIMARY KEY,
+    device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,
+    action VARCHAR(100),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data TEXT
+);
+
+DROP TABLE IF EXISTS users CASCADE;
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Создать индексы для быстрого поиска
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+
+-- Вставить тестовых пользователей
+-- Username: user1, Password: 123456
+INSERT INTO users (username, email, password, role) VALUES (
+    'user1',
+    'user1@test.com',
+    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    'user'
+);
+
+-- Username: admin, Password: admin123
+INSERT INTO users (username, email, password, role) VALUES (
+    'admin',
+    'admin@test.com',
+    '0bfe935e70e1d2fbc247e7cd2d39e2e67ab51a4e0b9f59d2d3e8a5e8f8d5c5e1',
+    'admin'
+);
+
+-- Username: worker1, Password: worker123
+INSERT INTO users (username, email, password, role) VALUES (
+    'worker1',
+    'worker@test.com',
+    '5c99c5e8e1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6b7a8f9e0d1c2b3a4f5e6d7',
+    'worker'
+);
+
+-- Остальные таблицы как были (user_devices, etc.)
+CREATE TABLE IF NOT EXISTS user_devices (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    device_id INTEGER,
+    payment_type VARCHAR(50),
+    floorplan TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS devices (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    device_type VARCHAR(50),
+    room VARCHAR(50),
+    status VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS device_logs (
+    id SERIAL PRIMARY KEY,
+    device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,
+    action VARCHAR(100),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data TEXT
+);
 
 \unrestrict Ft27eg7SWDfAltqATBM97B9Bg8i4HOQGBmOibsfEmdCekRXgZsgvJFlick9cy6N
 
