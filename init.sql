@@ -1187,5 +1187,30 @@ CREATE TABLE IF NOT EXISTS device_logs (
     data TEXT
 );
 
-\unrestrict Ft27eg7SWDfAltqATBM97B9Bg8i4HOQGBmOibsfEmdCekRXgZsgvJFlick9cy6N
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS house_status VARCHAR(50) DEFAULT 'День',
+ADD COLUMN IF NOT EXISTS payment_type VARCHAR(50) DEFAULT 'Базовый',
+ADD COLUMN IF NOT EXISTS floorplan_image TEXT;
+
+-- Создание таблицы для истории изменений профиля (опционально)
+CREATE TABLE IF NOT EXISTS user_profile_history (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    field_name VARCHAR(100) NOT NULL,
+    old_value TEXT,
+    new_value TEXT,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индекс для быстрого поиска по user_id
+CREATE INDEX IF NOT EXISTS idx_user_profile_history ON user_profile_history(user_id);
+
+-- Добавляем проверки для допустимых значений (PostgreSQL CHECK constraint)
+ALTER TABLE users
+ADD CONSTRAINT check_house_status 
+CHECK (house_status IN ('День', 'Ночь', 'Вне дома', 'Отпуск'));
+
+ALTER TABLE users
+ADD CONSTRAINT check_payment_type 
+CHECK (payment_type IN ('Максимум', 'Базовый', 'Экономный'));
 

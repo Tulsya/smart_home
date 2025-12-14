@@ -6,9 +6,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -104,6 +106,24 @@ type Worker struct {
 	Phone    string    `json:"phone"`
 	Email    string    `json:"email"`
 	HiredAt  time.Time `json:"hired_at"`
+}
+
+type UserProfile struct {
+	ID             int       `json:"id"`
+	Username       string    `json:"username"`
+	Email          string    `json:"email"`
+	HouseStatus    string    `json:"house_status"`
+	PaymentType    string    `json:"payment_type"`
+	FloorplanImage string    `json:"floorplan_image,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// UpdateProfileRequest - запрос на обновление профиля
+type UpdateProfileRequest struct {
+	HouseStatus    string `json:"house_status"`
+	PaymentType    string `json:"payment_type"`
+	FloorplanImage string `json:"floorplan_image,omitempty"`
 }
 
 // ============ AUTHENTICATION STRUCTURES ============
@@ -348,7 +368,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-User-Role")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return
@@ -475,34 +495,138 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 
 func getUserProfile(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID := r.URL.Query().Get("id")
 	if userID == "" {
-		http.Error(w, "ID не указан", http.StatusBadRequest)
+		http.Error(w, "User ID required", http.StatusBadRequest)
 		return
 	}
 
-	var user struct {
-		ID        int       `json:"id"`
-		Username  string    `json:"username"`
-		Email     string    `json:"email"`
-		CreatedAt time.Time `json:"created_at"`
-	}
-
-	err := psqlConn.QueryRow(
-		"SELECT id, username, email, created_at FROM users WHERE id = $1",
-		userID).Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt)
+	var profile UserProfile
+	err := psqlConn.QueryRow(`
+		SELECT 
+			id, username, email, 
+			COALESCE(house_status, 'День'),
+			COALESCE(payment_type, 'Базовый'),
+			floorplan_image,
+			created_at, updated_at
+		FROM users 
+		WHERE id = $1
+	`, userID).Scan(
+		&profile.ID,
+		&profile.Username,
+		&profile.Email,
+		&profile.HouseStatus,
+		&profile.PaymentType,
+		&profile.FloorplanImage,
+		&profile.CreatedAt,
+		&profile.UpdatedAt,
+	)
 
 	if err != nil {
-		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		log.Printf("Error fetching user profile: %v", err)
+		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(profile)
+}
+
+// updateUserProfile - POST /api/user/profile
+// Обновить профиль пользователя (статус дома, тип оплаты, фото)
+func updateUserProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Включить CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Получить userID из query параметра
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		http.Error(w, "Missing user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Распарсить JSON
+	var req UpdateProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// ✅ ПОЛУЧИ СТАРЫЕ ЗНАЧЕНИЯ ДЛЯ ЛОГИРОВАНИЯ
+	var oldHouseStatus, oldPaymentType string
+	err := psqlConn.QueryRow(`
+        SELECT COALESCE(house_status, ''), COALESCE(payment_type, '')
+        FROM users WHERE id = $1
+    `, userID).Scan(&oldHouseStatus, &oldPaymentType)
+
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Error fetching profile", http.StatusInternalServerError)
+		log.Printf("Database error: %v", err)
+		return
+	}
+
+	// ✅ ОБНОВИ ПРОФИЛЬ
+	_, err = psqlConn.Exec(`
+        UPDATE users 
+        SET house_status = $1, 
+            payment_type = $2, 
+            floorplan_image = $3,
+            updated_at = NOW()
+        WHERE id = $4
+    `, req.HouseStatus, req.PaymentType, req.FloorplanImage, userID)
+
+	if err != nil {
+		http.Error(w, "Error updating profile", http.StatusInternalServerError)
+		log.Printf("Database error: %v", err)
+		return
+	}
+
+	// ✅ ЛОГИРУЕМ КАЖДОЕ ИЗМЕНЕНИЕ
+	if req.HouseStatus != "" && req.HouseStatus != oldHouseStatus {
+		logProfileChange(userID, "house_status", oldHouseStatus, req.HouseStatus)
+	}
+
+	if req.PaymentType != "" && req.PaymentType != oldPaymentType {
+		logProfileChange(userID, "payment_type", oldPaymentType, req.PaymentType)
+	}
+
+	if req.FloorplanImage != "" {
+		logProfileChange(userID, "floorplan_image", "[old image]", "[new image]")
+	}
+
+	// Возврати обновленный профиль
+	var profile UserProfile
+	err = psqlConn.QueryRow(`
+        SELECT id, username, email, house_status, payment_type, floorplan_image, created_at, updated_at
+        FROM users WHERE id = $1
+    `, userID).Scan(&profile.ID, &profile.Username, &profile.Email,
+		&profile.HouseStatus, &profile.PaymentType,
+		&profile.FloorplanImage, &profile.CreatedAt, &profile.UpdatedAt)
+
+	if err != nil {
+		http.Error(w, "Error fetching updated profile", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(profile)
+
 }
 
 func getAllUsers(w http.ResponseWriter, r *http.Request) {
@@ -618,76 +742,76 @@ func changeUserRole(w http.ResponseWriter, r *http.Request) {
 }
 
 type AdminSensorData struct {
-    Topic string    `json:"topic"`
-    Value float64   `json:"value"`
-    Unit  string    `json:"unit"`
-    Time  time.Time `json:"time"`
+	Topic string    `json:"topic"`
+	Value float64   `json:"value"`
+	Unit  string    `json:"unit"`
+	Time  time.Time `json:"time"`
 }
 
 func getAdminSensors(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodGet {
-        http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
-        return
-    }
+	if r.Method != http.MethodGet {
+		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		return
+	}
 
-    queryAPI := influxClient.QueryAPI(cfg.InfluxOrg)
+	queryAPI := influxClient.QueryAPI(cfg.InfluxOrg)
 
-    // Минимальный запрос: всё из bucket за последние 24 часа
-    query := `from(bucket: "sensor_data")
+	// Минимальный запрос: всё из bucket за последние 24 часа
+	query := `from(bucket: "sensor_data")
         |> range(start: -24h)`
 
-    result, err := queryAPI.Query(context.Background(), query)
-    if err != nil {
-        log.Printf("[ADMIN] InfluxDB error: %v", err)
-        http.Error(w, "InfluxDB error", http.StatusInternalServerError)
-        return
-    }
+	result, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		log.Printf("[ADMIN] InfluxDB error: %v", err)
+		http.Error(w, "InfluxDB error", http.StatusInternalServerError)
+		return
+	}
 
-    var data []AdminSensorData
+	var data []AdminSensorData
 
-    for result.Next() {
-        rec := result.Record()
+	for result.Next() {
+		rec := result.Record()
 
-        topic := fmt.Sprintf("%v", rec.ValueByKey("topic"))
+		topic := fmt.Sprintf("%v", rec.ValueByKey("topic"))
 
-        // Безопасное извлечение value
-        var value float64
-        switch v := rec.Value().(type) {
-        case float64:
-            value = v
-        case int64:
-            value = float64(v)
-        case int:
-            value = float64(v)
-        default:
-            continue // пропускаем, если тип нечисловой
-        }
+		// Безопасное извлечение value
+		var value float64
+		switch v := rec.Value().(type) {
+		case float64:
+			value = v
+		case int64:
+			value = float64(v)
+		case int:
+			value = float64(v)
+		default:
+			continue // пропускаем, если тип нечисловой
+		}
 
-        unit := "value"
-        if strings.Contains(topic, "temperature") {
-            unit = "°C"
-        } else if strings.Contains(topic, "humidity") {
-            unit = "%"
-        }
+		unit := "value"
+		if strings.Contains(topic, "temperature") {
+			unit = "°C"
+		} else if strings.Contains(topic, "humidity") {
+			unit = "%"
+		}
 
-        data = append(data, AdminSensorData{
-            Topic: topic,
-            Value: value,
-            Unit:  unit,
-            Time:  rec.Time(),
-        })
-    }
+		data = append(data, AdminSensorData{
+			Topic: topic,
+			Value: value,
+			Unit:  unit,
+			Time:  rec.Time(),
+		})
+	}
 
-    if err := result.Err(); err != nil {
-        log.Printf("[ADMIN] Influx iterate error: %v", err)
-    }
+	if err := result.Err(); err != nil {
+		log.Printf("[ADMIN] Influx iterate error: %v", err)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    // Даже если data пустой, вернётся [] а не null
-    if data == nil {
-        data = []AdminSensorData{}
-    }
-    json.NewEncoder(w).Encode(data)
+	w.Header().Set("Content-Type", "application/json")
+	// Даже если data пустой, вернётся [] а не null
+	if data == nil {
+		data = []AdminSensorData{}
+	}
+	json.NewEncoder(w).Encode(data)
 }
 
 // ============ REST API HANDLERS - BUILDINGS ============
@@ -1001,6 +1125,47 @@ func startMetricsServer(port string) {
 	log.Fatal(http.ListenAndServe(port, nil))
 }
 
+func getAdminUserProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+	// Проверка админ-прав
+	role := r.Header.Get("X-User-Role")
+	if role != "admin" {
+		http.Error(w, "Access denied", http.StatusForbidden)
+		return
+	}
+	// Получить userID из URL параметра /api/admin/user?id=...
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		http.Error(w, "User ID required", http.StatusBadRequest)
+		return
+	}
+	var profile UserProfile
+	err := psqlConn.QueryRow(`
+SELECT id, username, email,
+COALESCE(house_status, ''),
+COALESCE(payment_type, ''),
+COALESCE(floorplan_image, ''),
+created_at, updated_at
+FROM users WHERE id = $1
+`, userID).Scan(&profile.ID, &profile.Username, &profile.Email,
+		&profile.HouseStatus, &profile.PaymentType,
+		&profile.FloorplanImage, &profile.CreatedAt, &profile.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			log.Printf("Error fetching user profile: %v", err)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(profile)
+}
+
 func startAPIServer(port string) {
 	mux := http.NewServeMux()
 	handler := corsMiddleware(mux) // ✅ ИСПРАВКА: удалить многоточие (...)
@@ -1010,11 +1175,17 @@ func startAPIServer(port string) {
 	mux.HandleFunc("/api/auth/login", loginUser)
 	mux.HandleFunc("/api/auth/profile", getUserProfile)
 
+	mux.HandleFunc("/api/user/profile", updateUserProfile)
+
 	// Админ-панель
 	mux.HandleFunc("/api/admin/users", getAllUsers)
 	mux.HandleFunc("/api/admin/users/", deleteUser)
 	mux.HandleFunc("/api/admin/users/role", changeUserRole)
 	mux.HandleFunc("/api/admin/sensors", getAdminSensors)
+	mux.HandleFunc("/api/admin/user", getAdminUserProfile)
+
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	mux.Handle("/", http.FileServer(http.Dir("./static")))
 
 	// Здания
 	mux.HandleFunc("/api/buildings", func(w http.ResponseWriter, r *http.Request) {
@@ -1074,4 +1245,88 @@ func startAPIServer(port string) {
 	}
 
 	log.Fatal(server.ListenAndServe())
+}
+
+// uploadFloorplan - POST /api/user/floorplan
+// Загрузить фото планировки квартиры
+func uploadFloorplan(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		http.Error(w, "User ID required", http.StatusBadRequest)
+		return
+	}
+
+	// Парсим multipart форму (макс 10MB)
+	if err := r.ParseMultipartForm(10 * 1024 * 1024); err != nil {
+		http.Error(w, "File too large", http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("floorplan")
+	if err != nil {
+		http.Error(w, "No file provided", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Проверяем тип файла
+	contentType := handler.Header.Get("Content-Type")
+	if contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/webp" {
+		http.Error(w, "Invalid file type. Only JPEG, PNG, WebP allowed", http.StatusBadRequest)
+		return
+	}
+
+	// Читаем файл в base64
+	fileData, err := ioutil.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Error reading file", http.StatusInternalServerError)
+		return
+	}
+
+	base64Data := "data:" + contentType + ";base64," + base64.StdEncoding.EncodeToString(fileData)
+
+	// Обновляем БД
+	_, err = psqlConn.Exec(
+		"UPDATE users SET floorplan_image = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+		base64Data,
+		userID,
+	)
+
+	if err != nil {
+		log.Printf("Error uploading floorplan: %v", err)
+		http.Error(w, "Failed to upload image", http.StatusInternalServerError)
+		return
+	}
+
+	logProfileChange(userID, "floorplan_image", "", "image_updated")
+
+	response := map[string]interface{}{
+		"success": true,
+		"message": "Floorplan uploaded successfully",
+		"file":    handler.Filename,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+// logProfileChange - логирует изменения профиля в таблицу user_profile_history
+func logProfileChange(userID, fieldName, oldValue, newValue string) {
+	_, err := psqlConn.Exec(`
+        INSERT INTO user_profile_history (user_id, field_name, old_value, new_value, changed_at)
+        VALUES ($1, $2, $3, $4, NOW())
+    `, userID, fieldName, oldValue, newValue)
+
+	if err != nil {
+		log.Printf("Error logging profile change for user %s: %v", userID, err)
+	} else {
+		log.Printf("Logged change for user %s: %s changed from '%s' to '%s'",
+			userID, fieldName, oldValue, newValue)
+	}
 }
