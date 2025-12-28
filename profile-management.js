@@ -70,16 +70,19 @@ async function updateUserProfile(houseStatus, paymentType) {
             return false;
         }
 
-        const response = await fetch(`${API_BASE}/user/profile?id=${user.id}`, {
-            method: 'POST',
+        const response = await fetch(`${API_BASE}/user/profile`, {
+            method: 'PUT',  // ← Правильный метод!
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user.token}`  // ← Добавить!
             },
             body: JSON.stringify({
+                id: user.id,
                 house_status: houseStatus,
                 payment_type: paymentType
             })
         });
+
 
         if (!response.ok) {
             const error = await response.json();
@@ -324,7 +327,7 @@ function handleFloorplanChange(event) {
 async function uploadFloorplancFile(file) {
     const fileInput = document.getElementById('floorplanInput');
     const fileToUpload = window.floorplanFileToUpload || fileInput.files[0];
-    
+
     if (!fileToUpload) {
         showAlert('floorplanAlert', 'Выберите файл', 'error');
         return;
@@ -350,7 +353,7 @@ async function saveProfileChanges(event) {
     const paymentType = document.getElementById('paymentType').value;
 
     const success = await updateUserProfile(houseStatus, paymentType);
-    
+
     if (success) {
         setTimeout(() => {
             displayUserProfile(userProfile);

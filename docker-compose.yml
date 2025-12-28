@@ -3,26 +3,71 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: postgres-smart-home
+    container_name: postgres_db
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Masha2002
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: smart_home
     ports:
       - "5432:5432"
-    command: postgres -c log_destination=stderr -c log_statement=all
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - smart-home-net
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    environment:
+      INFLUXDB_DB: smart_home
+      INFLUXDB_ADMIN_USER: admin
+      INFLUXDB_ADMIN_PASSWORD: password
+      INFLUXDB_HTTP_AUTH_ENABLED: "false"
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: password
+      DOCKER_INFLUXDB_INIT_ORG: smart_home
+      DOCKER_INFLUXDB_INIT_BUCKET: sensors
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: grafana-token-123
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - smart-home-net
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_SECURITY_ALLOW_IFRAME_EMBED: "true"
     ports:
       - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - grafana-storage:/var/lib/grafana
-      - ./grafana.ini:/etc/grafana/grafana.ini
+      - grafana_storage:/var/lib/grafana
+    networks:
+      - smart-home-net
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+    networks:
+      - smart-home-net
 
 volumes:
-  grafana-storage:
+  postgres_data:
+  influxdb_data:
+  grafana_storage:
+  mosquitto_data:
+
+networks:
+  smart-home-net:
+    driver: bridge
+

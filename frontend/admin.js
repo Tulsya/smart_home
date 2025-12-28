@@ -1,530 +1,538 @@
 const API_URL = 'http://localhost:8082/api';
 
-// Глобальные переменные
+// ============ ЗАЩИТА ОТ XSS АТАК ============
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// ============ ПОКАЗАТЬ УВЕДОМЛЕНИЕ ============
+function showAlert(elementId, message, type) {
+    const alertDiv = document.getElementById(elementId);
+    if (!alertDiv) {
+        console.warn(`⚠️ Элемент ${elementId} не найден`);
+        return;
+    }
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.innerHTML = message;
+    alertDiv.style.display = 'block';
+    console.log(`📢 [${type.toUpperCase()}] ${message}`);
+    if (type === 'success') {
+        setTimeout(() => {
+            alertDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+// ============ ЗАГРУЗИТЬ ВСЕ УСТРОЙСТВА ============
+async function loadAllDevices() {
+    try {
+        console.log('🔌 Загрузка всех устройств...');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await fetch(`${API_URL}/devices`, {
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+                'X-User-Role': user.role || 'admin'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        allDevices = await response.json() || [];
+        console.log('✅ Устройства загружены:', allDevices);
+
+        const container = document.getElementById('all-devices-container');
+        if (!container) {
+            console.warn('⚠️ Контейнер all-devices-container не найден');
+            return;
+        }
+
+        if (!allDevices || allDevices.length === 0) {
+            container.innerHTML = '<p>❌ Нет устройств</p>';
+            return;
+        }
+
+        container.innerHTML = allDevices.map(device => `
+            <div class="device-card">
+                <h4>🔌 ${escapeHtml(device.name)}</h4>
+                <p>ID: ${device.id}</p>
+                <p>Комната: ${device.room_id || '—'}</p>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('❌ Ошибка загрузки устройств:', error);
+        showAlert('devicesAlert', `Ошибка: ${error.message}`, 'error');
+    }
+}
+
+
+// ============ ЗАГРУЗИТЬ ДАННЫЕ ДАТЧИКОВ АДМИНА ============
+async function loadAdminSensors() {
+    try {
+        console.log('📡 Загрузка данных датчиков...');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await fetch(`${API_URL}/admin/sensors`, {
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+                'X-User-Role': user.role || 'admin'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const sensors = await response.json() || [];
+        console.log('✅ Датчики загружены:', sensors);
+
+        const container = document.getElementById('sensors-container');
+        if (!container) {
+            console.warn('⚠️ Контейнер sensors-container не найден');
+            return;
+        }
+
+        if (!sensors || sensors.length === 0) {
+            container.innerHTML = '<p>❌ Нет данных датчиков</p>';
+            return;
+        }
+
+        container.innerHTML = sensors.map(sensor => `
+            <div class="sensor-card">
+                <h4>📊 ${escapeHtml(sensor.topic)}</h4>
+                <p class="sensor-value">${sensor.value.toFixed(2)} ${escapeHtml(sensor.unit)}</p>
+                <p class="sensor-time">🕐 ${new Date(sensor.time).toLocaleString('ru-RU')}</p>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('❌ Ошибка загрузки датчиков:', error);
+    }
+}
+
+// ============ ИНИЦИАЛИЗАЦИЯ ============
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('🚀 Загрузка админ панели...');
+
+    // Проверить авторизацию
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role !== 'admin') {
+        console.error('❌ Доступ запрещен: не админ');
+        window.location.href = 'user3.html';
+        return;
+    }
+
+    loadUserInfo();
+    loadBuildings();
+    loadUsers();
+    loadAllDevices();       // ✅ Функция теперь определена выше
+    loadDashboard();
+    loadAdminSensors();     // ✅ Функция теперь определена выше
+
+    // Обновление каждые 5 секунд
+    setInterval(loadDeviceData, 5000);    // ✅ Функция теперь определена выше
+    setInterval(loadAdminSensors, 5000);
+});
+
+
+// ============ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ============
 let currentBuilding = null;
 let currentApartment = null;
 let currentRoom = null;
 let allDevices = [];
 let allBuildings = [];
 
-// Инициализация при загрузке
+// ============ ИНИЦИАЛИЗАЦИЯ ============
 document.addEventListener('DOMContentLoaded', function () {
     console.log('🚀 Загрузка админ панели...');
+
+    // Проверить авторизацию
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role !== 'admin') {
+        console.error('❌ Доступ запрещен: не админ');
+        window.location.href = 'user3.html';
+        return;
+    }
+
     loadUserInfo();
     loadBuildings();
-    loadUsers();
+    loadUsers();           // ✅ Добавлена функция
     loadAllDevices();
-    loadDashboard();
+    loadDashboard();       // ✅ Добавлена функция
     loadAdminSensors();
-    setInterval(loadDeviceData, 5000);
+
+    // Обновление каждые 5 секунд
+    setInterval(loadDeviceData, 5000);    // ✅ Функция добавлена
     setInterval(loadAdminSensors, 5000);
 });
 
-// Получить информацию о текущем пользователе
+// ============ ПОЛУЧИТЬ ИНФОРМАЦИЮ О ПОЛЬЗОВАТЕЛЕ ============
 function loadUserInfo() {
-    const username = localStorage.getItem('username') || 'admin';
-    const role = localStorage.getItem('role') || 'admin';
-    
-    document.getElementById('username').textContent = username;
-    document.getElementById('userRole').textContent = role;
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const username = document.getElementById('username');
+    const userRole = document.getElementById('userRole');
+
+    if (username) username.textContent = user.username || 'Admin';
+    if (userRole) userRole.textContent = user.role || 'admin';
 }
 
 // ============ РАБОТА СО ЗДАНИЯМИ ============
-
 async function loadBuildings() {
     try {
-        console.log('📡 Запрос зданий:', `${API_URL}/buildings`);
+        console.log('📡 Запрос зданий...');
         const response = await fetch(`${API_URL}/buildings`);
-        const data = await response.json();
-        console.log('✅ Получены здания:', data);
-        
-        allBuildings = data || [];
-        
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        allBuildings = await response.json() || [];
+        console.log('✅ Здания загружены:', allBuildings);
+
         const container = document.getElementById('buildings-container');
+        if (!container) return;
+
         if (!allBuildings || allBuildings.length === 0) {
-            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Нет зданий</p>';
+            container.innerHTML = '<p class="empty">Нет зданий. Добавьте первое здание!</p>';
             return;
         }
-        
+
+        // ✅ ИСПРАВЛЕНО: Правильно закрытые HTML теги
         container.innerHTML = allBuildings.map(building => `
-            <div class="building-card" onclick="showBuildingApartments(${building.id}, '${building.name}')">
-                <h3>🏢 ${building.name}</h3>
-                <div class="building-info">
-                    <div><strong>ID:</strong> ${building.id}</div>
-                    <div><strong>Адрес:</strong> ${building.name}</div>
-                </div>
+            <div class="building-card">
+                <h3>${escapeHtml(building.name)}</h3>
+                <p>ID: ${building.id}</p>
+                <button onclick="selectBuilding(${building.id})" class="btn btn-primary">
+                    Выбрать
+                </button>
+                <button onclick="deleteBuilding(${building.id})" class="btn btn-danger">
+                    Удалить
+                </button>
             </div>
         `).join('');
     } catch (error) {
         console.error('❌ Ошибка загрузки зданий:', error);
-        document.getElementById('buildings-container').innerHTML =
-            `<div class="error">Ошибка загрузки зданий: ${error.message}</div>`;
-    }
-}
-
-async function showBuildingApartments(buildingId, buildingName) {
-    console.log(`🏢 Показываем квартиры для здания ${buildingId}`);
-    currentBuilding = { id: buildingId, name: buildingName };
-    
-    // Скрыть список зданий, показать квартиры
-    document.getElementById('buildings-view').classList.add('hidden');
-    document.getElementById('apartments-view').classList.remove('hidden');
-    
-    // Загрузить квартиры
-    try {
-        const response = await fetch(`${API_URL}/rooms?building_id=${buildingId}`);
-        const apartments = await response.json();
-        console.log('✅ Получены квартиры:', apartments);
-        
-        const container = document.getElementById('apartments-container');
-        if (!apartments || apartments.length === 0) {
-            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Нет квартир в этом здании</p>';
-            return;
+        const container = document.getElementById('buildings-container');
+        if (container) {
+            container.innerHTML = `<p class="error">Ошибка: ${error.message}</p>`;
         }
-        
-        container.innerHTML = apartments.map(apt => `
-            <div class="apartment-card" onclick="showApartmentRooms(${apt.id}, '${apt.name}')">
-                <h4>🏠 ${apt.name}</h4>
-                <div class="building-info">
-                    <div><strong>ID:</strong> ${apt.id}</div>
-                    <div><strong>Здание:</strong> ${buildingName}</div>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('❌ Ошибка загрузки квартир:', error);
-        document.getElementById('apartments-container').innerHTML =
-            `<div class="error">Ошибка: ${error.message}</div>`;
     }
 }
 
-async function showApartmentRooms(apartmentId, apartmentName) {
-    console.log(`🏠 Показываем помещения для квартиры ${apartmentId}`);
-    currentApartment = { id: apartmentId, name: apartmentName };
-    
-    // Скрыть квартиры, показать помещения
-    document.getElementById('apartments-view').classList.add('hidden');
-    document.getElementById('rooms-view').classList.remove('hidden');
-    
-    // Загрузить помещения (детальная планировка)
-    try {
-        // Пока мокаем данные о помещениях
-        const mockRooms = [
-            { id: 1, name: 'Гостиная', type: 'livingroom', devices_count: 3 },
-            { id: 2, name: 'Спальня', type: 'bedroom', devices_count: 2 },
-            { id: 3, name: 'Кухня', type: 'kitchen', devices_count: 4 },
-            { id: 4, name: 'Ванная', type: 'bathroom', devices_count: 1 },
-            { id: 5, name: 'Балкон', type: 'balcony', devices_count: 1 }
-        ];
-        
-        const container = document.getElementById('rooms-container');
-        container.innerHTML = mockRooms.map(room => `
-            <div class="room-card" onclick="showRoomDevices(${room.id}, '${room.name}', '${room.type}')">
-                <h4>🚪 ${room.name}</h4>
-                <div class="room-info">
-                    <div><strong>Тип:</strong> ${room.type}</div>
-                    <div><strong>Устройств:</strong> ${room.devices_count}</div>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('❌ Ошибка загрузки помещений:', error);
-        document.getElementById('rooms-container').innerHTML =
-            `<div class="error">Ошибка: ${error.message}</div>`;
-    }
-}
-
-async function showRoomDevices(roomId, roomName, roomType) {
-    console.log(`🚪 Показываем устройства для помещения ${roomId}`);
-    currentRoom = { id: roomId, name: roomName, type: roomType };
-    
-    // Скрыть помещения, показать устройства
-    document.getElementById('rooms-view').classList.add('hidden');
-    document.getElementById('room-devices-view').classList.remove('hidden');
-    
-    // Загрузить устройства для этого помещения
-    try {
-        const response = await fetch(`${API_URL}/devices?room_id=${roomId}`);
-        const devices = await response.json();
-        console.log('✅ Получены устройства помещения:', devices);
-        
-        const container = document.getElementById('room-devices-container');
-        if (!devices || devices.length === 0) {
-            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Нет устройств в этом помещении</p>';
-            return;
-        }
-        
-        container.innerHTML = devices.map(device => `
-            <div class="device-card">
-                <div class="device-header">
-                    <span class="device-name">💡 ${device.name}</span>
-                    <span class="device-type">${roomName}</span>
-                </div>
-                <div class="device-data">
-                    <div class="data-item">
-                        <div class="data-label">ID</div>
-                        <div class="data-value">${device.id}</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-label">Статус</div>
-                        <div class="device-status online">● Online</div>
-                    </div>
-                </div>
-                <div class="debug-info">ID: ${device.id} | Room: ${device.room_id}</div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('❌ Ошибка загрузки устройств помещения:', error);
-        document.getElementById('room-devices-container').innerHTML =
-            `<div class="error">Ошибка: ${error.message}</div>`;
-    }
-}
-
-// Навигация назад
-function backToBuildings() {
-    document.getElementById('apartments-view').classList.add('hidden');
-    document.getElementById('buildings-view').classList.remove('hidden');
-    currentBuilding = null;
-}
-
-function backToApartments() {
-    document.getElementById('rooms-view').classList.add('hidden');
-    document.getElementById('apartments-view').classList.remove('hidden');
-    currentApartment = null;
-}
-
-function backToRooms() {
-    document.getElementById('room-devices-view').classList.add('hidden');
-    document.getElementById('rooms-view').classList.remove('hidden');
-    currentRoom = null;
-}
-
-// ============ ВСЕ УСТРОЙСТВА (отдельная вкладка) ============
-
-async function loadAllDevices() {
-    try {
-        console.log('📡 Запрос всех устройств:', `${API_URL}/devices`);
-        const response = await fetch(`${API_URL}/devices`);
-        const data = await response.json();
-        console.log('✅ Получены все устройства:', data);
-        
-        allDevices = data || [];
-        
-        const container = document.getElementById('devices-container');
-        if (!allDevices || allDevices.length === 0) {
-            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Нет устройств</p>';
-            return;
-        }
-        
-        container.innerHTML = allDevices.map(device => `
-            <div class="device-card">
-                <div class="device-header">
-                    <span class="device-name">💡 ${device.name}</span>
-                    <span class="device-type">Комната ${device.room_id}</span>
-                </div>
-                <div class="device-data">
-                    <div class="data-item">
-                        <div class="data-label">ID</div>
-                        <div class="data-value">${device.id}</div>
-                    </div>
-                    <div class="data-item">
-                        <div class="data-label">Статус</div>
-                        <div class="device-status online">● Online</div>
-                    </div>
-                </div>
-                <div class="debug-info">ID: ${device.id} | Room: ${device.room_id}</div>
-            </div>
-        `).join('');
-        
-        loadDeviceData();
-    } catch (error) {
-        console.error('❌ Ошибка загрузки всех устройств:', error);
-        document.getElementById('devices-container').innerHTML =
-            `<div class="error">Ошибка загрузки устройств: ${error.message}</div>`;
-    }
-}
-
-async function loadDeviceData() {
-    try {
-        const mockData = {
-            5: { temperature: 22.5, humidity: 45, status: 'online' },
-            6: { temperature: 21.8, humidity: 50, status: 'online' },
-        };
-        console.log('📊 Обновлены данные устройств');
-    } catch (error) {
-        console.error('❌ Ошибка загрузки данных устройств:', error);
-    }
-}
-
-// ============ ПОЛЬЗОВАТЕЛИ ============
-
+// ============ ЗАГРУЗИТЬ ПОЛЬЗОВАТЕЛЕЙ ============
 async function loadUsers() {
     try {
-        console.log('📡 Запрос пользователей:', `${API_URL}/admin/users`);
+        console.log('📡 Загрузка пользователей...');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
         const response = await fetch(`${API_URL}/admin/users`, {
-            headers: { 'X-User-Role': 'admin' }
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+                'X-User-Role': user.role || 'admin'
+            }
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
-        
-        const users = await response.json();
-        console.log('✅ Получены пользователи:', users);
-        
-        const tbody = document.getElementById('users-tbody');
+
+        const users = await response.json() || [];
+        console.log('✅ Пользователи загружены:', users);
+
+        const container = document.getElementById('users-container');
+        if (!container) return;
+
         if (!users || users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Нет пользователей</td></tr>';
+            container.innerHTML = '<p class="empty">Нет пользователей</p>';
             return;
         }
-        
-        tbody.innerHTML = users.map(user => `
-            <tr>
-                <td>${user.id}</td>
-                <td>${user.username}</td>
-                <td>${user.email}</td>
-                <td><span class="role-badge role-${user.role}">${user.role}</span></td>
-                <td>
-                    <div class="actions">
-                        <button class="btn btn-secondary" onclick="editUserRole(${user.id})">Изменить</button>
-                        <button class="btn btn-danger" onclick="deleteUser(${user.id})">Удалить</button>
-                    </div>
-                </td>
-            </tr>
+
+        container.innerHTML = users.map(u => `
+            <div class="user-card">
+                <h4>${escapeHtml(u.username)}</h4>
+                <p>📧 ${escapeHtml(u.email)}</p>
+                <p>Роль: <strong>${escapeHtml(u.role)}</strong></p>
+                <p>Создан: ${new Date(u.created_at).toLocaleString('ru-RU')}</p>
+                <button onclick="deleteUserById(${u.id})" class="btn btn-danger">
+                    🗑️ Удалить
+                </button>
+            </div>
         `).join('');
     } catch (error) {
         console.error('❌ Ошибка загрузки пользователей:', error);
-        document.getElementById('users-tbody').innerHTML =
-            `<tr><td colspan="5"><div class="error">Ошибка: ${error.message}</div></td></tr>`;
     }
 }
 
-async function addUser() {
-    const username = document.getElementById('newUsername').value;
-    const email = document.getElementById('newEmail').value;
-    const password = document.getElementById('newPassword').value;
-    const role = document.getElementById('newRole').value;
-    
-    if (!username || !email || !password) {
-        alert('Заполните все поля');
-        return;
-    }
-    
+// ============ ЗАГРУЗИТЬ ВСЕ УСТРОЙСТВА ============
+async function loadAllDevices() {
     try {
-        const response = await fetch(`${API_URL}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
-        });
-        
-        if (response.ok) {
-            closeAddUserModal();
-            loadUsers();
-            alert('✅ Пользователь добавлен');
-        } else {
-            alert('❌ Ошибка при добавлении пользователя');
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('❌ Ошибка при добавлении пользователя: ' + error.message);
-    }
-}
-
-async function deleteUser(userId) {
-    if (!confirm('Вы уверены?')) return;
-    
-    try {
-        const response = await fetch(`${API_URL}/admin/users/${userId}`, {
-            method: 'DELETE',
-            headers: { 'X-User-Role': 'admin' }
-        });
-        
-        if (response.ok) {
-            loadUsers();
-            alert('✅ Пользователь удален');
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('❌ Ошибка при удалении пользователя');
-    }
-}
-
-async function editUserRole(userId) {
-    const newRole = prompt('Введите новую роль (user/worker/admin):');
-    if (!newRole) return;
-    
-    try {
-        const response = await fetch(`${API_URL}/admin/users/role`, {
-            method: 'POST',
+        console.log('🔌 Загрузка всех устройств...');
+        const response = await fetch(`${API_URL}/devices`, {
             headers: {
-                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${JSON.parse(localStorage.getItem('user') || '{}').token}`,
                 'X-User-Role': 'admin'
-            },
-            body: JSON.stringify({ user_id: userId, new_role: newRole })
+            }
         });
-        
-        if (response.ok) {
-            loadUsers();
-            alert('✅ Роль изменена');
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
+
+        allDevices = await response.json() || [];
+        console.log('✅ Устройства загружены:', allDevices);
+
+        const container = document.getElementById('all-devices-container');
+        if (!container) {
+            console.warn('⚠️ Контейнер all-devices-container не найден');
+            return;
+        }
+
+        if (!allDevices || allDevices.length === 0) {
+            container.innerHTML = '<p>❌ Нет устройств</p>';
+            return;
+        }
+
+        container.innerHTML = allDevices.map(device => `
+            <div class="device-card">
+                <h4>🔌 ${escapeHtml(device.name)}</h4>
+                <p>ID: ${device.id}</p>
+                <p>Комната: ${device.room_id || '—'}</p>
+            </div>
+        `).join('');
+
     } catch (error) {
-        console.error('Ошибка:', error);
-        alert('❌ Ошибка при изменении роли');
+        console.error('❌ Ошибка загрузки устройств:', error);
+        showAlert('devicesAlert', `Ошибка: ${error.message}`, 'error');
     }
 }
 
-// ============ DASHBOARD ============
+// ============ ОБНОВИТЬ ДАННЫЕ УСТРОЙСТВ ============
+async function loadDeviceData() {
+    try {
+        if (!allDevices || allDevices.length === 0) return;
+        
+        for (const device of allDevices) {
+            const response = await fetch(`${API_URL}/sensors/data?sensor_id=device_${device.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${JSON.parse(localStorage.getItem('user') || '{}').token}`,
+                    'X-User-Role': 'admin'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log(`📊 Данные устройства ${device.id}:`, data);
+                
+                // ← ДОБАВИТЬ: Обновить статус на странице
+                const deviceElement = document.querySelector(`[data-device-id="${device.id}"]`);
+                if (deviceElement) {
+                    const statusClass = data.status === 'online' ? 'status-online' : 'status-offline';
+                    const statusText = data.status === 'online' ? '✅ Online' : '❌ Offline';
+                    deviceElement.querySelector('.device-status').innerHTML = `
+                        <span class="${statusClass}">${statusText}</span>
+                        <strong>${data.value.toFixed(2)} ${data.unit}</strong>
+                    `;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('⚠️ Ошибка обновления данных:', error);
+    }
+}
 
+// ============ ЗАГРУЗИТЬ ДАШБОРД ============
 async function loadDashboard() {
     try {
-        const statsHTML = `
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Устройств</h3>
-                    <p>${allDevices.length}</p>
-                </div>
-                <div class="stat-card" style="background: #f3e5f5;">
-                    <h3 style="color: #7b1fa2;">Online</h3>
-                    <p style="color: #7b1fa2;">${allDevices.length}</p>
-                </div>
-                <div class="stat-card" style="background: #e8f5e9;">
-                    <h3 style="color: #388e3c;">Статус</h3>
-                    <p style="color: #388e3c;">✓ OK</p>
+        console.log('📊 Загрузка дашборда...');
+        const response = await fetch(`${API_URL}/health`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const health = await response.json();
+        console.log('✅ Статус системы:', health);
+
+        const container = document.getElementById('dashboard-container');
+        if (!container) return;
+
+        const statusClass = (isOnline) => isOnline ? 'status-online' : 'status-offline';
+        const statusText = (isOnline) => isOnline ? '✅ Online' : '❌ Offline';
+
+        container.innerHTML = `
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Статус системы</h3>
+                    <div class="status-list">
+                        <div class="status-item ${statusClass(health.postgres)}">
+                            <span>PostgreSQL</span>
+                            <strong>${statusText(health.postgres)}</strong>
+                        </div>
+                        <div class="status-item ${statusClass(health.influxdb)}">
+                            <span>InfluxDB</span>
+                            <strong>${statusText(health.influxdb)}</strong>
+                        </div>
+                        <div class="status-item ${statusClass(health.mqtt)}">
+                            <span>MQTT</span>
+                            <strong>${statusText(health.mqtt)}</strong>
+                        </div>
+                    </div>
+                    <p class="timestamp">🕐 ${new Date(health.timestamp).toLocaleString('ru-RU')}</p>
                 </div>
             </div>
         `;
-        
-        const statsContainer = document.getElementById('stats-info');
-        if (statsContainer) {
-            statsContainer.innerHTML = statsHTML;
-        }
     } catch (error) {
-        console.error('❌ Ошибка загрузки dashboard:', error);
+        console.error('❌ Ошибка загрузки дашборда:', error);
     }
 }
 
-async function loadAdminSensors() {
+// ============ ОБНОВИТЬ ИНДИКАТОРЫ ============
+function updateDeviceIndicators(health) {
+    const updateIndicator = (elementId, isOnline) => {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.className = isOnline ? 'indicator online' : 'indicator offline';
+        }
+    };
+
+    updateIndicator('postgres-indicator', health.postgres);
+    updateIndicator('influx-indicator', health.influxdb);
+    updateIndicator('mqtt-indicator', health.mqtt);
+}
+
+
+// ============ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ============
+
+// Защита от XSS
+function escapeHtml(unsafe) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return unsafe.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Выбрать здание
+async function selectBuilding(buildingId) {
+    currentBuilding = buildingId;
+    console.log(`🏢 Выбрано здание: ${buildingId}`);
+    // Загрузить комнаты этого здания
+    loadRooms(buildingId);
+}
+
+// Загрузить комнаты
+async function loadRooms(buildingId) {
     try {
-        const response = await fetch(`${API_URL}/admin/sensors`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const readings = await response.json();
-        const tbody = document.getElementById('sensorsBody');
-        
-        if (!readings || readings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">Нет данных</td></tr>';
+        const response = await fetch(`${API_URL}/rooms?building_id=${buildingId}`);
+        const rooms = await response.json() || [];
+
+        const container = document.getElementById('rooms-container');
+        if (!container) return;
+
+        container.innerHTML = rooms.map(room => `
+            <div class="room-card">
+                <h4>${escapeHtml(room.name)}</h4>
+                <p>ID: ${room.id}</p>
+                <button onclick="selectRoom(${room.id})">Выбрать</button>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('❌ Ошибка загрузки комнат:', error);
+    }
+}
+
+// Выбрать комнату
+async function selectRoom(roomId) {
+    currentRoom = roomId;
+    console.log(`🚪 Выбрана комната: ${roomId}`);
+    loadDevicesInRoom(roomId);
+}
+
+// Загрузить устройства в комнате
+async function loadDevicesInRoom(roomId) {
+    try {
+        const response = await fetch(`${API_URL}/devices?room_id=${roomId}`);
+        const devices = await response.json() || [];
+
+        const container = document.getElementById('room-devices-container');
+        if (!container) return;
+
+        if (devices.length === 0) {
+            container.innerHTML = '<p>Нет устройств в этой комнате</p>';
             return;
         }
-        
-        tbody.innerHTML = readings.map(r => `
-            <tr>
-                <td>${r.topic}</td>
-                <td>${r.value.toFixed(2)}</td>
-                <td>${r.unit}</td>
-                <td>${new Date(r.time).toLocaleString('ru-RU')}</td>
-            </tr>
+
+        container.innerHTML = devices.map(device => `
+            <div class="device-card">
+                <h4>${escapeHtml(device.name)}</h4>
+                <p>ID: ${device.id}</p>
+            </div>
         `).join('');
-    } catch (e) {
-        console.error(e);
-        document.getElementById('sensorsBody').innerHTML =
-            '<tr><td colspan="4" style="color:#c00;padding:20px;text-align:center;">Ошибка загрузки данных датчиков</td></tr>';
+    } catch (error) {
+        console.error('❌ Ошибка загрузки устройств:', error);
     }
 }
 
-// ============ МОДАЛЬНЫЕ ОКНА ============
-
-function openAddBuildingModal() {
-    document.getElementById('addBuildingModal').classList.add('show');
-}
-
-function closeAddBuildingModal() {
-    document.getElementById('addBuildingModal').classList.remove('show');
-}
-
-function openAddUserModal() {
-    document.getElementById('addUserModal').classList.add('show');
-}
-
-function closeAddUserModal() {
-    document.getElementById('addUserModal').classList.remove('show');
-}
-
-async function addBuilding() {
-    const address = document.getElementById('newBuildingAddress').value;
-    const apartments = document.getElementById('newBuildingApartments').value;
-    
-    if (!address) {
-        alert('Введите адрес здания');
+// Удалить здание
+async function deleteBuilding(buildingId) {
+    if (!confirm('Удалить здание? Это удалит все комнаты и устройства!')) {
         return;
     }
-    
+
     try {
-        const response = await fetch(`${API_URL}/buildings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: address })
+        const response = await fetch(`${API_URL}/buildings?id=${buildingId}`, {
+            method: 'DELETE'
         });
-        
-        if (response.ok) {
-            closeAddBuildingModal();
-            loadBuildings();
-            alert('✅ Здание добавлено');
-        } else {
-            alert('❌ Ошибка при добавлении здания');
-        }
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        console.log('✅ Здание удалено');
+        loadBuildings();
     } catch (error) {
-        console.error('Ошибка:', error);
-        alert('❌ Ошибка при добавлении здания: ' + error.message);
+        console.error('❌ Ошибка удаления:', error);
     }
 }
 
-// ============ ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ============
-
-function switchTab(event, tabName) {
-    if (event) event.preventDefault();
-    
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
-    
-    const panel = document.getElementById(tabName);
-    if (panel) {
-        panel.classList.add('active');
+// Удалить пользователя
+async function deleteUserById(userId) {
+    if (!confirm('Удалить пользователя? Это нельзя отменить!')) {
+        return;
     }
-    
-    // Активировать кнопку
-    document.querySelectorAll('.nav-tabs button').forEach((btn) => {
-        if (btn.textContent.toLowerCase().includes(tabName.split('-')[0])) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Сбросить навигацию при переключении вкладок
-    if (tabName === 'buildings') {
-        backToBuildings();
-        document.getElementById('apartments-view').classList.add('hidden');
-        document.getElementById('rooms-view').classList.add('hidden');
-        document.getElementById('room-devices-view').classList.add('hidden');
-        document.getElementById('buildings-view').classList.remove('hidden');
+
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+                'X-User-Role': 'admin'
+            }
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        console.log('✅ Пользователь удален');
+        loadUsers();
+    } catch (error) {
+        console.error('❌ Ошибка удаления пользователя:', error);
+        alert('Ошибка удаления пользователя: ' + error.message);
     }
 }
 
-// ============ ПРОЧЕЕ ============
-
+// Выход
 function logout() {
-    console.log('🚪 Выход пользователя...');
-    localStorage.clear();
-    window.location.href = 'index.html';
-}
-
-// Закрыть модальное окно при клике вне его
-window.onclick = function (event) {
-    const addUserModal = document.getElementById('addUserModal');
-    const addBuildingModal = document.getElementById('addBuildingModal');
-    
-    if (event.target === addUserModal) {
-        addUserModal.classList.remove('show');
-    }
-    if (event.target === addBuildingModal) {
-        addBuildingModal.classList.remove('show');
+    if (confirm('Вы уверены?')) {
+        localStorage.removeItem('user');
+        window.location.href = 'user3.html';
     }
 }
