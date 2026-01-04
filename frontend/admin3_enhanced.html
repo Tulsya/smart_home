@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Admin Panel - Smart Home Control</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 2em; }
+        .user-info { text-align: right; }
+        .user-info p { margin: 5px 0; opacity: 0.9; }
+        .nav-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+        .nav-tabs button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            color: #333;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-tabs button:hover {
+            background: #e8e8e8;
+        }
+        .nav-tabs button.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .content {
+            padding: 30px;
+            min-height: 500px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .card p {
+            color: #666;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        .metric {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            margin: 5px 5px 5px 0;
+        }
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #f44336;
+        }
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        .btn-success {
+            background: #4CAF50;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        table tr:hover {
+            background: #f5f5f5;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        .modal-header h2 {
+            color: #333;
+            margin: 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .status-online {
+            background: #4CAF50;
+            color: white;
+        }
+        .status-offline {
+            background: #f44336;
+            color: white;
+        }
+        .status-ok {
+            background: #4CAF50;
+            color: white;
+        }
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card .label {
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .breadcrumb button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-right: 10px;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            margin: 3px 3px 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🏠 Smart Home Control</h1>
+            </div>
+            <div class="user-info">
+                <p><strong id="username">Admin</strong></p>
+                <p>Роль: <span id="userRole">admin</span></p>
+                <button class="btn btn-danger" onclick="logout()">Выход</button>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="active" onclick="switchTab('overview')">📊 Обзор</button>
+            <button onclick="switchTab('buildings')">🏢 Здания</button>
+            <button onclick="switchTab('monitoring')">📈 Мониторинг устройств</button>
+            <button onclick="switchTab('users')">👥 Пользователи</button>
+            <button onclick="switchTab('system')">⚙️ Система</button>
+        </div>
+
+        <div class="content">
+            <div id="overview" class="tab-content active">
+                <h2>📊 Панель управления</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="label">Всего зданий</div>
+                        <div class="value" id="total-buildings">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Всего помещений</div>
+                        <div class="value" id="total-rooms">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Всего устройств</div>
+                        <div class="value" id="total-devices">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Активных пользователей</div>
+                        <div class="value" id="total-users">0</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🔧 Статус системы</h2>
+                    <div class="grid">
+                        <div class="card">
+                            <h3>🔗 Backend API</h3>
+                            <p>Статус: <span class="status-badge status-ok">OK</span></p>
+                        </div>
+                        <div class="card">
+                            <h3>📡 MQTT Брокер</h3>
+                            <p>Статус: <span class="status-badge status-online">ONLINE</span></p>
+                        </div>
+                        <div class="card">
+                            <h3>📊 InfluxDB</h3>
+                            <p>Статус: <span class="status-badge status-ok">OK</span></p>
+                        </div>
+                        <div class="card">
+                            <h3>🐘 PostgreSQL</h3>
+                            <p>Статус: <span class="status-badge status-ok">OK</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="buildings" class="tab-content">
+                <div id="buildings-list">
+                    <h2>🏢 Перечень зданий</h2>
+                    <button class="btn btn-success" onclick="openBuildingModal()">+ Добавить здание</button>
+                    <div style="margin-top: 30px;" id="buildings-full-container">
+                        <p>Загрузка зданий...</p>
+                    </div>
+                </div>
+
+                <div id="apartment-details" style="display:none;">
+                    <div class="breadcrumb">
+                        <button onclick="backToBuildings()">← Назад к зданиям</button>
+                    </div>
+                    <h2 id="building-title-detail">🏢 Здание</h2>
+                    <button class="btn btn-success" onclick="openApartmentModal()">+ Добавить квартиру</button>
+                    <div style="margin-top: 20px;" id="apartments-full-container">
+                        <p>Загрузка квартир...</p>
+                    </div>
+                </div>
+
+                <div id="rooms-details" style="display:none;">
+                    <div class="breadcrumb">
+                        <button onclick="backToApartmentsDetail()">← Назад к квартирам</button>
+                    </div>
+                    <h2 id="apartment-title-detail">🏠 Квартира</h2>
+                    <button class="btn btn-success" onclick="openRoomModal()">+ Добавить комнату</button>
+                    <div style="margin-top: 20px;" id="rooms-full-container">
+                        <p>Загрузка комнат...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="monitoring" class="tab-content">
+                <h2>📈 Мониторинг устройств</h2>
+                <div class="section">
+                    <h3>Все устройства в системе</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Устройство</th>
+                                <th>Местоположение</th>
+                                <th>Состояние</th>
+                                <th>Последнее обновление</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monitoring-table">
+                            <tr><td colspan="5">Загрузка устройств...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="users" class="tab-content">
+                <h2>👥 Управление пользователями</h2>
+                <button class="btn btn-success" onclick="alert('API интеграция')">+ Добавить пользователя</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя</th>
+                            <th>Email</th>
+                            <th>Роль</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr><td colspan="5">Загрузка пользователей...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="sensors" class="tab-content">
+                <h2>📡 Мониторинг датчиков</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Датчик</th>
+                            <th>Значение</th>
+                            <th>Единица</th>
+                            <th>Время</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sensors-table">
+                        <tr><td colspan="4">Загрузка данных датчиков...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="system" class="tab-content">
+                <h2>⚙️ Системные настройки</h2>
+                <div class="section">
+                    <h3>Адреса сервисов</h3>
+                    <table>
+                        <tr>
+                            <td><strong>Backend:</strong></td>
+                            <td>http://localhost:8082</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Grafana:</strong></td>
+                            <td><a href="http://localhost:3001" target="_blank">http://localhost:3001</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Metrics:</strong></td>
+                            <td><a href="http://localhost:2114/metrics" target="_blank">http://localhost:2114/metrics</a></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модал добавления здания -->
+    <div id="buildingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏢 Добавить здание</h2>
+            </div>
+            <form onsubmit="addBuilding(event)">
+                <div class="form-group">
+                    <label>Адрес:</label>
+                    <input type="text" id="building-address" placeholder="Город, улица, дом" required>
+                </div>
+                <button type="submit" class="btn btn-success">Добавить</button>
+                <button type="button" class="btn btn-danger" onclick="closeBuildingModal()">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модал добавления квартиры -->
+    <div id="apartmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏠 Добавить квартиру</h2>
+            </div>
+            <form onsubmit="addApartment(event)">
+                <div class="form-group">
+                    <label>Номер квартиры:</label>
+                    <input type="text" id="apartment-number" placeholder="Например: 101" required>
+                </div>
+                <button type="submit" class="btn btn-success">Добавить</button>
+                <button type="button" class="btn btn-danger" onclick="closeApartmentModal()">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модал добавления комнаты -->
+    <div id="roomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🚪 Добавить комнату</h2>
+            </div>
+            <form onsubmit="addRoom(event)">
+                <div class="form-group">
+                    <label>Название комнаты:</label>
+                    <input type="text" id="room-name" placeholder="Например: Спальня" required>
+                </div>
+                <button type="submit" class="btn btn-success">Добавить</button>
+                <button type="button" class="btn btn-danger" onclick="closeRoomModal()">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модал добавления устройства -->
+    <div id="deviceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💡 Добавить устройство</h2>
+            </div>
+            <form onsubmit="addDevice(event)">
+                <div class="form-group">
+                    <label>Название устройства:</label>
+                    <input type="text" id="device-name" placeholder="Например: Основная лампа" required>
+                </div>
+                <div class="form-group">
+                    <label>Тип устройства:</label>
+                    <select id="device-type" required>
+                        <option value="light">💡 Лампа</option>
+                        <option value="temperature">🌡️ Датчик температуры</option>
+                        <option value="humidity">💧 Датчик влажности</option>
+                        <option value="switch">🔌 Выключатель</option>
+                        <option value="plug">⚡ Умная розетка</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Добавить</button>
+                <button type="button" class="btn btn-danger" onclick="closeDeviceModal()">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8082/api';
+        let currentBuilding = null;
+        let currentApartment = null;
+        let currentRoom = null;
+        let buildings = [];
+        let apartments = [];
+        let rooms = [];
+        let devices = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            loadStats();
+            loadBuildings();
+            loadMonitoringDevices();
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tab === 'monitoring') {
+                loadMonitoringDevices();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'user3.html';
+        }
+
+        function loadUserInfo() {
+            const username = localStorage.getItem('username') || 'Admin';
+            document.getElementById('username').textContent = username;
+        }
+
+        function loadStats() {
+            const totalBuildings = buildings.length;
+            const totalApartments = apartments.length;
+            const totalRooms = rooms.length;
+            const totalDevices = devices.length;
+            
+            document.getElementById('total-buildings').textContent = totalBuildings;
+            document.getElementById('total-rooms').textContent = totalRooms;
+            document.getElementById('total-devices').textContent = totalDevices;
+            document.getElementById('total-users').textContent = '12';
+        }
+
+        // ===== ЗДАНИЯ =====
+        async function loadBuildings() {
+            try {
+                buildings = [
+                    { id: 1, address: 'ул. Ленина, дом 10', apartments: [
+                        { id: 1, number: '101', rooms: [
+                            { id: 1, name: 'Спальня', devices: [{ id: 1, name: 'Лампа спальни', type: 'light', state: 'on' }] },
+                            { id: 2, name: 'Гостиная', devices: [{ id: 2, name: 'Телевизор', type: 'switch', state: 'off' }] }
+                        ]},
+                        { id: 2, number: '102', rooms: [
+                            { id: 3, name: 'Кухня', devices: [{ id: 3, name: 'Вытяжка', type: 'switch', state: 'on' }] }
+                        ]}
+                    ]},
+                    { id: 2, address: 'ул. Пушкина, дом 25', apartments: [
+                        { id: 3, number: '201', rooms: [
+                            { id: 4, name: 'Спальня', devices: [{ id: 4, name: 'Люстра', type: 'light', state: 'on' }] },
+                            { id: 5, name: 'Ванная', devices: [{ id: 5, name: 'Датчик влажности', type: 'humidity', state: 'on' }] }
+                        ]}
+                    ]},
+                    { id: 3, address: 'ул. Горького, дом 5', apartments: [
+                        { id: 4, number: '301', rooms: [
+                            { id: 6, name: 'Коридор', devices: [{ id: 6, name: 'Датчик движения', type: 'switch', state: 'on' }] }
+                        ]}
+                    ]}
+                ];
+
+                // Синхронизируем массивы для stats
+                apartments = [];
+                rooms = [];
+                devices = [];
+                buildings.forEach(b => {
+                    b.apartments.forEach(a => {
+                        apartments.push(a);
+                        a.rooms.forEach(r => {
+                            rooms.push(r);
+                            r.devices.forEach(d => {
+                                devices.push(d);
+                            });
+                        });
+                    });
+                });
+                loadStats();
+
+                const container = document.getElementById('buildings-full-container');
+                container.innerHTML = buildings.map(building => `
+                    <div class="section" style="border: 2px solid #667eea; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3 onclick="toggleBuilding(${building.id})" style="cursor: pointer; color: #667eea; display: flex; justify-content: space-between; align-items: center;">
+                            <span>🏢 ${building.address}</span>
+                            <span id="toggle-${building.id}">▼</span>
+                        </h3>
+                        <div id="building-${building.id}" style="margin-top: 15px;">
+                            ${building.apartments.map(apt => `
+                                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #667eea;">
+                                    <h4 onclick="toggleApartment(${apt.id})" style="cursor: pointer; color: #333; margin-bottom: 10px; display: flex; justify-content: space-between;">
+                                        <span>🏠 Квартира №${apt.number}</span>
+                                        <span id="toggle-apt-${apt.id}">▼</span>
+                                    </h4>
+                                    <div id="apt-${apt.id}" style="display: none; padding-left: 15px;">
+                                        <button class="btn btn-success btn-sm" onclick="openRoomModalForApt(${apt.id})">+ Комната</button>
+                                        ${apt.rooms.map(room => `
+                                            <div style="background: white; padding: 12px; margin-top: 10px; border-radius: 6px; border-left: 3px solid #764ba2;">
+                                                <h5 onclick="toggleRoom(${room.id})" style="cursor: pointer; color: #333; margin: 0 0 8px 0; display: flex; justify-content: space-between;">
+                                                    <span>🚪 ${room.name}</span>
+                                                    <span id="toggle-room-${room.id}">▼</span>
+                                                </h5>
+                                                <div id="room-${room.id}" style="display: none; padding-left: 10px;">
+                                                    <button class="btn btn-success btn-sm" onclick="openDeviceModalForRoom(${room.id})">+ Устройство</button>
+                                                    <button class="btn btn-sm" onclick="viewApartmentLayout(${apt.id})">📐 Планировка</button>
+                                                    <div style="margin-top: 10px;">
+                                                        ${room.devices.map(device => `
+                                                            <div style="display: inline-block; background: #e8eef7; padding: 8px 12px; margin-right: 8px; margin-top: 8px; border-radius: 5px; font-size: 0.9em;">
+                                                                ${getDeviceIcon(device.type)} <strong>${device.name}</strong>
+                                                                <span class="status-badge ${device.state === 'on' ? 'status-online' : 'status-offline'}" style="margin-left: 8px; font-size: 0.8em;">
+                                                                    ${device.state === 'on' ? '✓ ВКЛ' : '✗ ВЫКЛ'}
+                                                                </span>
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                console.error('Ошибка при загрузке зданий:', e);
+            }
+        }
+
+        function toggleBuilding(id) {
+            const el = document.getElementById(`building-${id}`);
+            const toggle = document.getElementById(`toggle-${id}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            toggle.textContent = el.style.display === 'none' ? '▶' : '▼';
+        }
+
+        function toggleApartment(id) {
+            const el = document.getElementById(`apt-${id}`);
+            const toggle = document.getElementById(`toggle-apt-${id}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            toggle.textContent = el.style.display === 'none' ? '▶' : '▼';
+        }
+
+        function toggleRoom(id) {
+            const el = document.getElementById(`room-${id}`);
+            const toggle = document.getElementById(`toggle-room-${id}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            toggle.textContent = el.style.display === 'none' ? '▶' : '▼';
+        }
+
+        function backToBuildings() {
+            document.getElementById('buildings-list').style.display = 'block';
+            document.getElementById('apartment-details').style.display = 'none';
+            currentBuilding = null;
+        }
+
+        function openRoomModalForApt(apartmentId) {
+            currentApartment = apartmentId;
+            openRoomModal();
+        }
+
+        function openDeviceModalForRoom(roomId) {
+            currentRoom = roomId;
+            openDeviceModal();
+        }
+
+        function viewApartmentLayout(apartmentId) {
+            alert(`📐 Планировка квартиры #${apartmentId}\n\nВизуализация планировки из пользовательского профиля`);
+        }
+
+        function backToApartmentsDetail() {
+            document.getElementById('apartment-details').style.display = 'none';
+            document.getElementById('buildings-list').style.display = 'block';
+        }
+
+        // ===== МОНИТОРИНГ УСТРОЙСТВ =====
+        async function loadMonitoringDevices() {
+            try {
+                const allDevices = [
+                    { id: 1, name: 'Лампа спальни', location: 'Квартира 101 - Спальня', state: 'on', lastUpdate: '2025-12-28 19:30' },
+                    { id: 2, name: 'Кондиционер гостиной', location: 'Квартира 101 - Гостиная', state: 'off', lastUpdate: '2025-12-28 18:45' },
+                    { id: 3, name: 'Датчик температуры кухня', location: 'Квартира 102 - Кухня', state: 'on', lastUpdate: '2025-12-28 19:44' },
+                    { id: 4, name: 'Умная розетка', location: 'Квартира 103 - Гостиная', state: 'on', lastUpdate: '2025-12-28 19:25' },
+                    { id: 5, name: 'Датчик движения', location: 'Квартира 201 - Коридор', state: 'on', lastUpdate: '2025-12-28 19:40' }
+                ];
+
+                const tbody = document.getElementById('monitoring-table');
+                tbody.innerHTML = allDevices.map(device => `
+                    <tr>
+                        <td>${device.name}</td>
+                        <td>${device.location}</td>
+                        <td>
+                            <span class="status-badge ${device.state === 'on' ? 'status-online' : 'status-offline'}">
+                                ${device.state === 'on' ? '🟢 ВКЛЮЧЕНО' : '🔴 ОТКЛЮЧЕНО'}
+                            </span>
+                        </td>
+                        <td>${device.lastUpdate}</td>
+                        <td>
+                            <button class="btn btn-sm" onclick="openGrafanaChart(${device.id})">📊 График</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error('Ошибка при загрузке мониторинга:', e);
+            }
+        }
+
+        function openGrafanaChart(deviceId) {
+            window.open(`http://localhost:3001/d/solo/adgrcwv/smart-home?orgId=1&var-device=${deviceId}`, '_blank');
+        }
+
+        // ===== МОДАЛЫ =====
+        function openBuildingModal() {
+            document.getElementById('buildingModal').classList.add('active');
+        }
+
+        function closeBuildingModal() {
+            document.getElementById('buildingModal').classList.remove('active');
+        }
+
+        function openApartmentModal() {
+            document.getElementById('apartmentModal').classList.add('active');
+        }
+
+        function closeApartmentModal() {
+            document.getElementById('apartmentModal').classList.remove('active');
+        }
+
+        function openRoomModal() {
+            document.getElementById('roomModal').classList.add('active');
+        }
+
+        function closeRoomModal() {
+            document.getElementById('roomModal').classList.remove('active');
+        }
+
+        function openDeviceModal() {
+            document.getElementById('deviceModal').classList.add('active');
+        }
+
+        function closeDeviceModal() {
+            document.getElementById('deviceModal').classList.remove('active');
+        }
+
+        // ===== ДОБАВЛЕНИЕ ДАННЫХ =====
+        function addBuilding(e) {
+            e.preventDefault();
+            const address = document.getElementById('building-address').value;
+            const newBuilding = { id: buildings.length + 1, address };
+            buildings.push(newBuilding);
+            loadBuildings();
+            closeBuildingModal();
+            document.getElementById('building-address').value = '';
+        }
+
+        function addApartment(e) {
+            e.preventDefault();
+            const number = document.getElementById('apartment-number').value;
+            const newApartment = { id: apartments.length + 1, number, building_id: currentBuilding };
+            apartments.push(newApartment);
+            loadApartments(currentBuilding);
+            closeApartmentModal();
+            document.getElementById('apartment-number').value = '';
+        }
+
+        function addRoom(e) {
+            e.preventDefault();
+            const name = document.getElementById('room-name').value;
+            const newRoom = { id: rooms.length + 1, name, apartment_id: currentApartment };
+            rooms.push(newRoom);
+            loadRooms(currentApartment);
+            closeRoomModal();
+            document.getElementById('room-name').value = '';
+        }
+
+        function addDevice(e) {
+            e.preventDefault();
+            const name = document.getElementById('device-name').value;
+            const type = document.getElementById('device-type').value;
+            const newDevice = { id: devices.length + 1, name, type, state: 'on', room_id: currentRoom };
+            devices.push(newDevice);
+            loadBuildings();
+            closeDeviceModal();
+            document.getElementById('device-name').value = '';
+        }
+
+        function addRoom(e) {
+            e.preventDefault();
+            const name = document.getElementById('room-name').value;
+            const newRoom = { id: rooms.length + 1, name, apartment_id: currentApartment, devices: [] };
+            rooms.push(newRoom);
+            loadBuildings();
+            closeRoomModal();
+            document.getElementById('room-name').value = '';
+        }
+
+        function addApartment(e) {
+            e.preventDefault();
+            const number = document.getElementById('apartment-number').value;
+            const newApartment = { id: apartments.length + 1, number, building_id: currentBuilding, rooms: [] };
+            apartments.push(newApartment);
+            loadBuildings();
+            closeApartmentModal();
+            document.getElementById('apartment-number').value = '';
+        }
+
+        function addBuilding(e) {
+            e.preventDefault();
+            const address = document.getElementById('building-address').value;
+            const newBuilding = { id: buildings.length + 1, address, apartments: [] };
+            buildings.push(newBuilding);
+            loadBuildings();
+            closeBuildingModal();
+            document.getElementById('building-address').value = '';
+        }
+
+        // ===== УДАЛЕНИЕ =====
+        function deleteDevice(deviceId) {
+            if (!confirm('Удалить устройство?')) return;
+            devices = devices.filter(d => d.id !== deviceId);
+            loadBuildings();
+        }
+
+        function getDeviceIcon(type) {
+            const icons = {
+                'light': '💡',
+                'temperature': '🌡️',
+                'humidity': '💧',
+                'switch': '🔌',
+                'plug': '⚡'
+            };
+            return icons[type] || '🔧';
+        }
+    </script>
+</body>
+</html>

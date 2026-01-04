@@ -15,6 +15,11 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - smart-home-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d smart_home"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   influxdb:
     image: influxdb:2.7
@@ -43,6 +48,10 @@ services:
     environment:
       GF_SECURITY_ALLOW_EMBEDDING: "true"
       GF_SECURITY_ALLOW_IFRAME_EMBED: "true"
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
     ports:
       - "3001:3000"
     volumes:
@@ -61,6 +70,32 @@ services:
     networks:
       - smart-home-net
 
+  backend:
+    build: ./backend
+    container_name: backend_app
+    ports:
+      - "8082:8082"
+      - "2114:2114"
+    environment:
+      DATABASE_URL: postgres://admin:password@postgres:5432/smart_home?sslmode=disable
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_TOKEN: grafana-token-123
+      INFLUX_ORG: smart_home
+      INFLUX_BUCKET: sensors
+      MQTT_BROKER: tcp://mosquitto:1883
+      JWT_SECRET: my-super-secret-jwt-key-smart-home-2025
+      HTTP_PORT: 8082
+      METRICS_PORT: 2114
+    depends_on:
+      postgres:
+        condition: service_healthy
+      influxdb:
+        condition: service_started
+      mosquitto:
+        condition: service_started
+    networks:
+      - smart-home-net
+
 volumes:
   postgres_data:
   influxdb_data:
@@ -70,4 +105,3 @@ volumes:
 networks:
   smart-home-net:
     driver: bridge
-

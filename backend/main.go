@@ -182,6 +182,7 @@ func initMetrics() {
 }
 
 func initPostgres(dsn string) {
+	log.Printf("DEBUG: DSN=%s", dsn)
 	var err error
 	psqlConn, err = sql.Open("postgres", dsn)
 	if err != nil {

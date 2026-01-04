@@ -1,7 +1,15 @@
-FROM golang:1.21-alpine
+FROM golang:1.24-alpine
+
 WORKDIR /app
-COPY backend/main.go .
-COPY backend/go.mod backend/go.sum ./
+
+# Копировать все файлы из backend папки
+COPY . .
+
+# Загрузить зависимости
 RUN go mod download
-RUN go build -o main main.go
+
+# Собрать приложение
+RUN go build -o main .
+
+# Запустить
 CMD ["./main"]

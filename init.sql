@@ -1,6 +1,3 @@
--- Clean PostgreSQL initialization script for Smart Home IoT System
--- All tables properly defined with foreign keys and constraints
-
 SET search_path TO public;
 
 -- Drop all tables if they exist (in correct order to avoid FK conflicts)
@@ -39,10 +36,23 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Workers table (теперь с связью к users)
+CREATE TABLE workers (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    full_name VARCHAR(255) NOT NULL,
+    "position" VARCHAR(100),
+    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    hired_at DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Buildings table
 CREATE TABLE building (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+    name VARCHAR(100) NOT NULL,
+    manager_id INTEGER REFERENCES workers(id) ON DELETE SET NULL
 );
 
 -- Rooms table
@@ -52,11 +62,12 @@ CREATE TABLE room (
     building_id INTEGER NOT NULL REFERENCES building(id) ON DELETE CASCADE
 );
 
--- Devices table
+-- Devices table (теперь с привязкой к работнику)
 CREATE TABLE device (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    room_id INTEGER REFERENCES room(id) ON DELETE CASCADE
+    room_id INTEGER REFERENCES room(id) ON DELETE CASCADE,
+    assigned_worker_id INTEGER REFERENCES workers(id) ON DELETE SET NULL
 );
 
 -- Controllers table
@@ -122,16 +133,6 @@ CREATE TABLE state (
     controller_id INTEGER NOT NULL REFERENCES controller(id) ON DELETE CASCADE
 );
 
--- Workers table
-CREATE TABLE workers (
-    id SERIAL PRIMARY KEY,
-    full_name VARCHAR(255) NOT NULL,
-    "position" VARCHAR(100),
-    phone VARCHAR(20),
-    email VARCHAR(100) UNIQUE,
-    hired_at DATE
-);
-
 -- User-Devices junction table
 CREATE TABLE user_devices (
     id SERIAL PRIMARY KEY,
@@ -143,10 +144,11 @@ CREATE TABLE user_devices (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Device logs table
+-- Device logs table (теперь с привязкой к работнику)
 CREATE TABLE device_logs (
     id SERIAL PRIMARY KEY,
     device_id INTEGER REFERENCES device(id) ON DELETE CASCADE,
+    worker_id INTEGER REFERENCES workers(id) ON DELETE SET NULL,
     action VARCHAR(100),
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data TEXT
@@ -169,13 +171,18 @@ CREATE TABLE user_profile_history (
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_workers_user ON workers(user_id);
+CREATE INDEX idx_workers_email ON workers(email);
+CREATE INDEX idx_building_manager ON building(manager_id);
 CREATE INDEX idx_room_building ON room(building_id);
 CREATE INDEX idx_device_room ON device(room_id);
+CREATE INDEX idx_device_worker ON device(assigned_worker_id);
 CREATE INDEX idx_controller_device ON controller(device_id);
 CREATE INDEX idx_variables_controller ON variables(controller_id);
 CREATE INDEX idx_user_devices_user ON user_devices(user_id);
 CREATE INDEX idx_user_devices_device ON user_devices(device_id);
 CREATE INDEX idx_device_logs_device ON device_logs(device_id);
+CREATE INDEX idx_device_logs_worker ON device_logs(worker_id);
 CREATE INDEX idx_user_profile_history_user ON user_profile_history(user_id);
 
 -- ============================================
@@ -188,8 +195,13 @@ INSERT INTO users (username, email, password, role, house_status, payment_type) 
 ('user1', 'user1@test.com', 'password123', 'user', 'День', 'Базовый'),
 ('worker1', 'worker@test.com', 'worker123', 'worker', 'День', 'Базовый');
 
--- Insert test building
-INSERT INTO building (name) VALUES ('Квартира');
+-- Insert test workers (связаны с пользователями)
+INSERT INTO workers (user_id, full_name, "position", phone, email, hired_at) VALUES 
+(3, 'Иван Петров', 'Инженер', '+7-999-123-45-67', 'ivan@company.com', '2023-01-15'),
+(NULL, 'Мария Сидорова', 'Техник', '+7-999-234-56-78', 'maria@company.com', '2023-02-20');
+
+-- Insert test building (с привязкой к менеджеру)
+INSERT INTO building (name, manager_id) VALUES ('Квартира', 1);
 
 -- Insert test rooms
 INSERT INTO room (name, building_id) VALUES 
@@ -197,12 +209,12 @@ INSERT INTO room (name, building_id) VALUES
 ('Спальня', 1),
 ('Кухня', 1);
 
--- Insert test devices
-INSERT INTO device (name, room_id) VALUES 
-('Люстра', 1),
-('Кондиционер', 1),
-('Светильник', 2),
-('Плита', 3);
+-- Insert test devices (с привязкой к работнику)
+INSERT INTO device (name, room_id, assigned_worker_id) VALUES 
+('Люстра', 1, 1),
+('Кондиционер', 1, 1),
+('Светильник', 2, 2),
+('Плита', 3, NULL);
 
 -- Insert test controllers
 INSERT INTO controller (name, state, device_id) VALUES 
@@ -210,11 +222,6 @@ INSERT INTO controller (name, state, device_id) VALUES
 ('Контроллер 2', 'off', 2),
 ('Контроллер 3', 'off', 3),
 ('Контроллер 4', 'off', 4);
-
--- Insert test workers
-INSERT INTO workers (full_name, "position", phone, email, hired_at) VALUES 
-('Иван Петров', 'Инженер', '+7-999-123-45-67', 'ivan@company.com', '2023-01-15'),
-('Мария Сидорова', 'Техник', '+7-999-234-56-78', 'maria@company.com', '2023-02-20');
 
 -- Insert user-devices relationships
 INSERT INTO user_devices (user_id, device_id, payment_type) VALUES 
@@ -226,3 +233,9 @@ INSERT INTO user_devices (user_id, device_id, payment_type) VALUES
 (2, 3, 'Базовый'),
 (3, 2, 'Базовый'),
 (3, 4, 'Базовый');
+
+-- Insert sample device logs
+INSERT INTO device_logs (device_id, worker_id, action, data) VALUES 
+(1, 1, 'maintenance', 'Проверка и очистка'),
+(2, 1, 'repair', 'Замена фильтра'),
+(3, 2, 'inspection', 'Диагностика');
