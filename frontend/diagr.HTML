@@ -273,6 +273,54 @@
             border-bottom: none;
         }
 
+        /* СТИЛИ ДЛЯ КНОПОК УПРАВЛЕНИЯ (ДОБАВЛЕНО) */
+        .sensor-controls {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .control-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .decrease-btn {
+            background: #ef4444;
+        }
+
+        .decrease-btn:hover {
+            background: #dc2626;
+        }
+
+        .increase-btn {
+            background: #10b981;
+        }
+
+        .increase-btn:hover {
+            background: #059669;
+        }
+
         .sensor-icon {
             font-size: 20px;
             margin-right: 15px;
@@ -343,9 +391,17 @@
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         /* ГРАФИК */
@@ -815,6 +871,142 @@
             opacity: 0.5;
         }
 
+        /* Стили для вкладки Надёжность */
+        .system-metric-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 1px;
+            animation: drawLine 2s ease-out;
+        }
+
+        .metric-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .metric-icon {
+            font-size: 24px;
+        }
+
+        .metric-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .metric-progress {
+            height: 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .metric-details {
+            font-size: 12px;
+            color: #6b7280;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .metric-details div {
+            padding: 4px 0;
+        }
+
+        /* События системы */
+        .system-events {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .system-event {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.2s;
+        }
+
+        .system-event:hover {
+            background: #f9fafb;
+        }
+
+        .system-event:last-child {
+            border-bottom: none;
+        }
+
+        .event-time {
+            width: 60px;
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .event-icon {
+            width: 30px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .event-content {
+            flex: 1;
+        }
+
+        .event-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #374151;
+            margin-bottom: 3px;
+        }
+
+        .event-desc {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .btn-reliability {
+            background: #8b5cf6;
+        }
+
+        .btn-reliability:hover {
+            background: #7c3aed;
+        }
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -895,6 +1087,7 @@
                     style="display: none;">0</span></button>
             <button class="nav-btn" data-tab="buildings" onclick="switchTab('buildings')">🏢 Здания</button>
             <button class="nav-btn" data-tab="system" onclick="switchTab('system')">⚙️ Система</button>
+            <button class="nav-btn" data-tab="reliability" onclick="switchTab('reliability')">⚡ Надёжность
         </div>
 
         <!-- Содержание вкладок -->
@@ -904,26 +1097,27 @@
                 <h2 style="margin-bottom: 15px; font-size: 18px;">📊 Панель управления</h2>
                 <div class="stats">
                     <div class="stat-card">
-                        <div class="label">Всего зданий</div>
-                        <div class="value" id="total-buildings">3</div>
+                        <div class="label">Количество зданий</div>
+                        <div class="value" id="total-buildings">12</div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">Датчиков всего</div>
-                        <div class="value" id="total-sensors">4</div>
+                        <div class="label">Количество датчиков</div>
+                        <div class="value" id="total-sensors">234</div>
                     </div>
                     <div class="stat-card">
                         <div class="label">В сети</div>
-                        <div class="value" id="online-sensors">4</div>
+                        <div class="value" id="online-sensors">201</div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">Активных пользователей</div>
-                        <div class="value" id="total-users">8</div>
+                        <div class="label">Количество пользователей</div>
+                        <div class="value" id="total-users">47</div>
                     </div>
                 </div>
 
                 <div style="margin-top: 25px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px;">🔧 Статус системы</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
                         <div
                             style="background: #f0fdf4; padding: 12px; border-radius: 6px; border-left: 3px solid #10b981;">
                             <div style="font-weight: 600; font-size: 13px;">🔗 Backend API</div>
@@ -981,7 +1175,14 @@
                         <button class="btn btn-sm" onclick="refreshSensors()">
                             🔄 Обновить
                         </button>
+                        <button class="btn btn-sm btn-tariff" disabled>
+                            🔖 Экономный
+                        </button>
+                        <button class="btn btn-sm btn-tariff" disabled>
+                            🚌 Отсутствие
+                        </button>
                     </div>
+
                 </div>
 
                 <!-- ИНФОРМАЦИЯ О ВЫБРАННОМ АДРЕСЕ -->
@@ -1069,45 +1270,147 @@
                 </div>
             </div>
 
-            <!-- Вкладка: Система -->
-            <div id="system" class="tab-content">
-                <h2 style="margin-bottom: 15px; font-size: 18px;">⚙️ Системные настройки</h2>
+            <!-- Вкладка: Надёжность системы -->
+            <!-- Вкладка: Надёжность системы -->
+            <div id="reliability" class="tab-content">
+                <h2 style="margin-bottom: 15px; font-size: 18px;">⚡ Мониторинг надёжности системы</h2>
 
-                <div
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px;">
-                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">
-                        <h3 style="font-size: 14px; margin-bottom: 8px;">🌐 Адреса сервисов</h3>
-                        <div style="font-size: 12px; line-height: 1.5;">
-                            <p><strong>Backend API:</strong> localhost:8082</p>
-                            <p><strong>Grafana:</strong> <a href="http://localhost:3001" target="_blank"
-                                    style="color: #667eea;">localhost:3001</a></p>
-                            <p><strong>InfluxDB:</strong> localhost:8086</p>
-                            <p><strong>MQTT Broker:</strong> localhost:1883</p>
+                <!-- График системных метрик -->
+                <div class="compact-graph-container" id="reliability-graph-container">
+                    <div class="graph-header">
+                        <div class="graph-title">📈 График из Grafana (последние 24 часа)</div>
+                        <div class="graph-time-range">Обновлено: <span id="reliability-last-update">только что</span>
                         </div>
                     </div>
+                    <img src="image2.jpg" alt="График системных метрик из Grafana"
+                        style="width:100%; border-radius: 6px; border: 1px solid #e5e7eb;">
+                </div>
 
-                    <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 3px solid #10b981;">
-                        <h3 style="font-size: 14px; margin-bottom: 8px;">📊 Метрики системы</h3>
-                        <div style="font-size: 12px; line-height: 1.5;">
-                            <p><strong>Время работы:</strong> <span id="uptime">15д 4ч 22м</span></p>
-                            <p><strong>Использование CPU:</strong> 8%</p>
-                            <p><strong>Использование RAM:</strong> 1.1GB / 4GB</p>
-                            <p><strong>Свободно на диске:</strong> 89GB / 120GB</p>
-                        </div>
+                
+
+            <!-- Текущие значения метрик -->
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 25px;">
+                <div class="metric-card" id="cpu-card">
+                    <div class="metric-header">
+                        <span class="metric-icon">💻</span>
+                        <span class="metric-title">Центральный процессор</span>
+                    </div>
+                    <div class="metric-value" id="cpu-value">8%</div>
+                    <div class="metric-progress">
+                        <div class="progress-bar" id="cpu-bar" style="width: 8%; background: #ef4444;"></div>
+                    </div>
+                    <div class="metric-details">
+                        <div>Ядра: <span id="cpu-cores">4</span></div>
+                        <div>Частота: <span id="cpu-freq">2.8 GHz</span></div>
+                        <div>Температура: <span id="cpu-temp">45°C</span></div>
                     </div>
                 </div>
 
-                <div
-                    style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 3px solid #f59e0b; margin-top: 15px;">
-                    <h3 style="font-size: 14px; margin-bottom: 10px;">⚡ Быстрые действия</h3>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn btn-sm" onclick="restartServices()">🔄 Перезапуск сервисов</button>
-                        <button class="btn btn-sm" onclick="exportLogs()">📥 Экспорт логов</button>
-                        <button class="btn btn-sm" onclick="backupDatabase()">💾 Резервное копирование</button>
+                <div class="metric-card" id="ram-card">
+                    <div class="metric-header">
+                        <span class="metric-icon">🧠</span>
+                        <span class="metric-title">Оперативная память</span>
+                    </div>
+                    <div class="metric-value" id="ram-value">1.1GB / 4GB</div>
+                    <div class="metric-progress">
+                        <div class="progress-bar" id="ram-bar" style="width: 28%; background: #3b82f6;"></div>
+                    </div>
+                    <div class="metric-details">
+                        <div>Использовано: <span id="ram-used">1.1GB</span></div>
+                        <div>Свободно: <span id="ram-free">2.9GB</span></div>
+                        <div>Использование: <span id="ram-percent">28%</span></div>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="disk-card">
+                    <div class="metric-header">
+                        <span class="metric-icon">💾</span>
+                        <span class="metric-title">Дисковое пространство</span>
+                    </div>
+                    <div class="metric-value" id="disk-value">89GB / 120GB</div>
+                    <div class="metric-progress">
+                        <div class="progress-bar" id="disk-bar" style="width: 74%; background: #10b981;"></div>
+                    </div>
+                    <div class="metric-details">
+                        <div>Свободно: <span id="disk-free">89GB</span></div>
+                        <div>Использовано: <span id="disk-used">31GB</span></div>
+                        <div>Использование: <span id="disk-percent">26%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- История системных событий -->
+            <div style="margin-top: 30px;">
+                <h3 style="font-size: 16px; margin-bottom: 15px;">📋 История системных событий</h3>
+                <div class="system-events" id="system-events">
+                    <div class="system-event">
+                        <div class="event-time">15:30</div>
+                        <div class="event-icon">✅</div>
+                        <div class="event-content">
+                            <div class="event-title">Автоматическое резервное копирование</div>
+                            <div class="event-desc">Резервная копия базы данных успешно создана</div>
+                        </div>
+                    </div>
+                    <div class="system-event">
+                        <div class="event-time">14:15</div>
+                        <div class="event-icon">⚠️</div>
+                        <div class="event-content">
+                            <div class="event-title">Пиковая нагрузка CPU</div>
+                            <div class="event-desc">Использование CPU достигло 85%</div>
+                        </div>
+                    </div>
+                    <div class="system-event">
+                        <div class="event-time">10:45</div>
+                        <div class="event-icon">🔧</div>
+                        <div class="event-content">
+                            <div class="event-title">Обновление сервисов</div>
+                            <div class="event-desc">Сервисы MQTT и InfluxDB перезапущены</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Вкладка: Система -->
+        <div id="system" class="tab-content">
+            <h2 style="margin-bottom: 15px; font-size: 18px;">⚙️ Системные настройки</h2>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">
+                    <h3 style="font-size: 14px; margin-bottom: 8px;">🌐 Адреса сервисов</h3>
+                    <div style="font-size: 12px; line-height: 1.5;">
+                        <p><strong>Backend API:</strong> localhost:8082</p>
+                        <p><strong>Grafana:</strong> <a href="http://localhost:3001" target="_blank"
+                                style="color: #667eea;">localhost:3001</a></p>
+                        <p><strong>InfluxDB:</strong> localhost:8086</p>
+                        <p><strong>MQTT Broker:</strong> localhost:1883</p>
+                    </div>
+                </div>
+
+                <div style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 3px solid #10b981;">
+                    <h3 style="font-size: 14px; margin-bottom: 8px;">📊 Метрики системы</h3>
+                    <div style="font-size: 12px; line-height: 1.5;">
+                        <p><strong>Время работы:</strong> <span id="uptime">15д 4ч 22м</span></p>
+                        <p><strong>Использование CPU:</strong> 8%</p>
+                        <p><strong>Использование RAM:</strong> 1.1GB / 4GB</p>
+                        <p><strong>Свободно на диске:</strong> 89GB / 120GB</p>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="background: #f9fafb; padding: 15px; border-radius: 8px; border-left: 3px solid #f59e0b; margin-top: 15px;">
+                <h3 style="font-size: 14px; margin-bottom: 10px;">⚡ Быстрые действия</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-sm" onclick="restartServices()">🔄 Перезапуск сервисов</button>
+                    <button class="btn btn-sm" onclick="exportLogs()">📥 Экспорт логов</button>
+                    <button class="btn btn-sm" onclick="backupDatabase()">💾 Резервное копирование</button>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
     <!-- Модальное окно планировки -->
@@ -1173,11 +1476,22 @@
                             },
                             {
                                 id: 3,
+                                name: 'Движение - Кухня',
+                                type: 'motion',
+                                location: 'Кухня',
+                                icon: '🟡',
+                                value: 0,
+                                unit: '0',
+                                status: 'online',
+                                lastUpdate: new Date()
+                            },
+                            {
+                                id: 3,
                                 name: 'Влажность - Спальня',
                                 type: 'humidity',
                                 location: 'Спальня',
                                 icon: '💧',
-                                value: 45,
+                                value: 42,
                                 unit: '%',
                                 status: 'online',
                                 lastUpdate: new Date()
@@ -1188,8 +1502,19 @@
                                 type: 'humidity',
                                 location: 'Кухня',
                                 icon: '💧',
-                                value: 38,
+                                value: 40,
                                 unit: '%',
+                                status: 'online',
+                                lastUpdate: new Date()
+                            },
+                            {
+                                id: 5,
+                                name: 'Умная лампочка Яндекс, Е27, филаментная, 806 Лм',
+                                type: 'smart',
+                                location: 'Кухня',
+                                icon: '🟡',
+                                value: 700,
+                                unit: 'Лм',
                                 status: 'online',
                                 lastUpdate: new Date()
                             }
@@ -1316,7 +1641,7 @@
         function updateNotificationBadge() {
             const unreadCount = notifications.filter(n => !n.read).length;
             const badge = document.getElementById('notification-badge');
-            
+
             if (unreadCount > 0) {
                 badge.style.display = 'inline-block';
                 badge.textContent = unreadCount;
@@ -1459,7 +1784,7 @@
                 let status = sensor.status;
                 let statusText = '✓ В сети';
                 let statusClass = 'online';
-                
+
                 if (sensor.type === 'temperature' && sensor.value > 30) {
                     statusClass = 'critical';
                     statusText = '⚠️ Критично';
@@ -1469,6 +1794,17 @@
                 } else if (sensor.status === 'offline') {
                     statusClass = 'offline';
                     statusText = '✗ Отключен';
+                }
+
+                // ДОБАВЛЕНО: Кнопки управления для умных устройств
+                let controlButtons = '';
+                if (sensor.type === 'smart') {
+                    controlButtons = `
+                        <div class="sensor-controls">
+                            <button class="control-btn decrease-btn" onclick="decreaseBrightness(${sensor.id})" title="Уменьшить яркость">−</button>
+                            <button class="control-btn increase-btn" onclick="increaseBrightness(${sensor.id})" title="Увеличить яркость">+</button>
+                        </div>
+                    `;
                 }
 
                 item.innerHTML = `
@@ -1481,6 +1817,7 @@
                         <div class="sensor-value">${sensor.value}</div>
                         <div class="sensor-unit">${sensor.unit}</div>
                     </div>
+                    ${controlButtons}
                     <span class="sensor-status ${statusClass}">
                         ${statusText}
                     </span>
@@ -1505,7 +1842,7 @@
                     if (sensor.type === 'temperature') {
                         sensor.value = Math.max(18, Math.min(35, sensor.value + change));
                         sensor.value = parseFloat(sensor.value.toFixed(1));
-                        
+
                         // Создаем уведомление при критической температуре
                         if (sensor.value > 30 && Math.random() > 0.7) {
                             addNotification({
@@ -1521,7 +1858,7 @@
                     } else if (sensor.type === 'humidity') {
                         sensor.value = Math.max(20, Math.min(90, sensor.value + change * 3));
                         sensor.value = Math.round(sensor.value);
-                        
+
                         // Создаем уведомление при критической влажности
                         if (sensor.value > 80 && Math.random() > 0.7) {
                             addNotification({
@@ -1534,6 +1871,10 @@
                                 value: `${sensor.value}%`
                             });
                         }
+                    } else if (sensor.type === 'smart') {
+                        // Обновляем значение для умной лампочки
+                        sensor.value = Math.max(100, Math.min(1000, sensor.value + (Math.random() - 0.5) * 50));
+                        sensor.value = Math.round(sensor.value);
                     }
 
                     sensor.lastUpdate = new Date();
@@ -1545,6 +1886,33 @@
             resetUpdateTimer();
 
             showNotification('Данные датчиков обновлены');
+        }
+
+        // ДОБАВЛЕНО: Функции для управления яркостью
+        function decreaseBrightness(sensorId) {
+            const building = buildings.find(b => b.id == selectedBuildingId);
+            const apartment = building.apartments.find(a => a.id == selectedApartmentId);
+            const sensor = apartment.sensors.find(s => s.id === sensorId);
+
+            if (sensor && sensor.type === 'smart') {
+                sensor.value = Math.max(100, sensor.value - 50);
+                sensor.lastUpdate = new Date();
+                displaySensorsList(apartment.sensors);
+                showNotification(`Яркость уменьшена до ${sensor.value} Лм`);
+            }
+        }
+
+        function increaseBrightness(sensorId) {
+            const building = buildings.find(b => b.id == selectedBuildingId);
+            const apartment = building.apartments.find(a => a.id == selectedApartmentId);
+            const sensor = apartment.sensors.find(s => s.id === sensorId);
+
+            if (sensor && sensor.type === 'smart') {
+                sensor.value = Math.min(1000, sensor.value + 50);
+                sensor.lastUpdate = new Date();
+                displaySensorsList(apartment.sensors);
+                showNotification(`Яркость увеличена до ${sensor.value} Лм`);
+            }
         }
 
         function updateLastUpdateTime() {
@@ -1581,36 +1949,36 @@
         function loadNotifications() {
             const container = document.getElementById('notifications-list');
             const noNotifications = document.getElementById('no-notifications');
-            
+
             container.innerHTML = '';
-            
+
             if (notifications.length === 0) {
                 noNotifications.style.display = 'block';
                 return;
             }
-            
+
             noNotifications.style.display = 'none';
-            
+
             // Сортируем по времени (новые сверху)
             notifications.sort((a, b) => b.time - a.time);
-            
+
             notifications.forEach(notification => {
                 const item = document.createElement('div');
                 item.className = `notification-item ${notification.type}`;
                 if (!notification.read) {
-                    item.style.backgroundColor = notification.type === 'critical' ? '#fef2f2' : 
-                                                notification.type === 'warning' ? '#fef3c7' : '#eff6ff';
+                    item.style.backgroundColor = notification.type === 'critical' ? '#fef2f2' :
+                        notification.type === 'warning' ? '#fef3c7' : '#eff6ff';
                 }
-                
+
                 const timeAgo = formatTimeAgo(notification.time);
-                
+
                 item.innerHTML = `
                     <div class="notification-content">
                         <div class="notification-title">
                             ${notification.title}
                             <span class="notification-badge badge-${notification.type}">
-                                ${notification.type === 'critical' ? 'КРИТИЧЕСКОЕ' : 
-                                  notification.type === 'warning' ? 'ПРЕДУПРЕЖДЕНИЕ' : 'ИНФОРМАЦИЯ'}
+                                ${notification.type === 'critical' ? 'КРИТИЧЕСКОЕ' :
+                        notification.type === 'warning' ? 'ПРЕДУПРЕЖДЕНИЕ' : 'ИНФОРМАЦИЯ'}
                             </span>
                             ${notification.read ? '' : '<span style="color: #ef4444; font-size: 10px;">●</span>'}
                         </div>
@@ -1634,7 +2002,7 @@
                 `;
                 container.appendChild(item);
             });
-            
+
             updateNotificationBadge();
         }
 
@@ -1651,16 +2019,16 @@
                 time: new Date(),
                 read: false
             };
-            
+
             notifications.unshift(newNotification);
-            
+
             // Обновляем отображение если открыта вкладка уведомлений
             if (document.getElementById('notifications').classList.contains('active')) {
                 loadNotifications();
             }
-            
+
             updateNotificationBadge();
-            
+
             // Показываем всплывающее уведомление
             showNotification(`Новое уведомление: ${notificationData.title}`);
         }
@@ -1701,14 +2069,14 @@
         function loadBuildings() {
             const container = document.getElementById('buildings-list');
             container.innerHTML = '';
-            
+
             buildings.forEach(building => {
                 const buildingItem = document.createElement('div');
                 buildingItem.className = 'building-item';
                 buildingItem.id = `building-${building.id}`;
-                
+
                 const isOpen = openedBuildings.has(building.id);
-                
+
                 buildingItem.innerHTML = `
                     <div class="building-header" onclick="toggleBuilding(${building.id})">
                         <div class="building-title">🏢 ${building.address}</div>
@@ -1731,6 +2099,12 @@
                                     <button class="btn btn-sm" onclick="viewApartmentSensors(${building.id}, ${apartment.id})">
                                         📊 Датчики
                                     </button>
+                                    <button class="btn btn-sm" onclick="viewApartmentSensors(${building.id}, ${apartment.id})">
+                                        🔖 Экономный
+                                    </button>
+                                    <button class="btn btn-sm btn-reliability" onclick="showReliabilityTab()">
+                                        ⚡ Надёжность
+                                    </button>
                                 </div>
                             </div>
                         `).join('')}
@@ -1752,12 +2126,12 @@
         function viewApartmentLayout(buildingId, apartmentId) {
             const building = buildings.find(b => b.id === buildingId);
             const apartment = building.apartments.find(a => a.id === apartmentId);
-            
+
             if (!building || !apartment) return;
-            
+
             document.getElementById('modal-title').textContent = `Планировка квартиры ${apartment.number}`;
             document.getElementById('apartment-address').textContent = `${building.address}, квартира ${apartment.number}`;
-            
+
             const floorPlan = document.getElementById('floor-plan');
             floorPlan.innerHTML = `
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0;">
@@ -1774,7 +2148,7 @@
                     `).join('')}
                 </div>
             `;
-            
+
             document.getElementById('floor-plan-modal').classList.add('active');
         }
 
@@ -1785,11 +2159,11 @@
         function viewApartmentSensors(buildingId, apartmentId) {
             // Переключаемся на вкладку мониторинга и выбираем нужную квартиру
             switchTab('monitoring');
-            
+
             setTimeout(() => {
                 document.getElementById('address-select').value = buildingId;
                 onAddressSelect();
-                
+
                 setTimeout(() => {
                     document.getElementById('apartment-select').value = apartmentId;
                     onApartmentSelect();
@@ -1801,7 +2175,7 @@
         function addNewBuilding() {
             const address = prompt('Введите адрес нового здания:');
             if (!address) return;
-            
+
             const newBuilding = {
                 id: buildings.length + 1,
                 address: address,
@@ -1819,15 +2193,15 @@
                     }
                 ]
             };
-            
+
             buildings.push(newBuilding);
             loadBuildings();
-            
+
             // Обновляем селект адресов
             initAddressSelect();
-            
+
             showNotification(`Здание "${address}" добавлено`);
-            
+
             // Обновляем статистику
             document.getElementById('total-buildings').textContent = buildings.length;
         }
@@ -1935,13 +2309,13 @@
 
             // Инициализируем селект адресов
             initAddressSelect();
-            
+
             // Загружаем уведомления
             loadNotifications();
-            
+
             // Загружаем здания
             loadBuildings();
-            
+
             // Обновляем бейдж уведомлений
             updateNotificationBadge();
 
@@ -1968,7 +2342,7 @@
                     uptimeElement.textContent = `${days}д ${hours}ч ${minutes}м`;
                 }
             }, 60000);
-            
+
             // Симуляция случайных уведомлений каждые 2 минуты
             setInterval(() => {
                 if (Math.random() > 0.7) { // 30% шанс
@@ -1977,7 +2351,7 @@
                         const apartment = building.apartments[Math.floor(Math.random() * building.apartments.length)];
                         const types = ['critical', 'warning', 'info'];
                         const type = types[Math.floor(Math.random() * types.length)];
-                        
+
                         const notificationsData = {
                             critical: {
                                 title: 'Критическое состояние датчика',
@@ -1992,17 +2366,17 @@
                                 message: 'Датчик требует профилактического обслуживания'
                             }
                         };
-                        
+
                         addNotification({
                             type: type,
                             title: notificationsData[type].title,
                             message: notificationsData[type].message,
                             address: building.address,
                             apartment: apartment.number,
-                            sensor: apartment.sensors.length > 0 ? 
+                            sensor: apartment.sensors.length > 0 ?
                                 apartment.sensors[0].name : 'Датчик температуры',
-                            value: type === 'critical' ? '32.5°C' : 
-                                   type === 'warning' ? '85%' : 'Нет данных'
+                            value: type === 'critical' ? '32.5°C' :
+                                type === 'warning' ? '85%' : 'Нет данных'
                         });
                     }
                 }

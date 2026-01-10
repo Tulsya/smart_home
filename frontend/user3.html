@@ -424,7 +424,7 @@
             <!-- ФОРМА РЕГИСТРАЦИИ -->
             <div class="auth-card" id="registerCard">
                 <h1>📝 Регистрация</h1>
-                <p>Создайте аккаунт для управления Smart Home</p>
+                <p>Создайте аккаунт для управления Умным домом</p>
 
                 <div id="registerAlert"></div>
 
@@ -503,16 +503,16 @@
             <!-- ШАГ 1: Выбор типа расчета -->
             <div id="step1" class="step-card">
                 <h2>
-                    <span class="step-number">1</span>Выберите тип расчета
+                    <span class="step-number">1</span>Выберите тип оплаты ЖКУ
                 </h2>
-                <button class="option-btn" onclick="selectPayment('Стандартная')">
-                    ✓ Стандартная (по площади)
+                <button class="option-btn" onclick="selectPayment('Максимальный')">
+                    💎 Максимальный
                 </button>
-                <button class="option-btn" onclick="selectPayment('По потреблению')">
-                    ✓ По потреблению
+                <button class="option-btn" onclick="selectPayment('Стандартный')">
+                    💡 Стандартный
                 </button>
-                <button class="option-btn" onclick="selectPayment('Фиксированная')">
-                    ✓ Фиксированная
+                <button class="option-btn" onclick="selectPayment('Экономный')">
+                    🔒 Экономный
                 </button>
                 <button class="btn btn-primary" style="margin-top: 30px;" onclick="nextStep(1)">
                     Продолжить →
@@ -932,7 +932,7 @@
         function nextStep(currentStep) {
             if (currentStep === 1) {
                 if (!userSetupData.paymentType) {
-                    alert('Пожалуйста, выберите тип расчета');
+                    alert('Пожалуйста, выберите тип оплаты ЖКУ');
                     return;
                 }
             }
@@ -1069,15 +1069,6 @@
                 <!-- СООБЩЕНИЕ О УСПЕХЕ -->
                 <div class="success-message" id="profileSuccessMessage" style="margin-top: 20px;">
                     ✅ Профиль успешно обновлен!
-                </div>
-
-                <!-- ИНФОРМАЦИЯ ПО ПРОФИЛЮ -->
-                <div style="margin-top: 30px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
-                    <p><strong>Пользователь:</strong> <span id="profileDisplayUsername"></span></p>
-                    <p><strong>Email:</strong> <span id="profileDisplayEmail"></span></p>
-                    <p><strong>Статус дома:</strong> <span id="profileDisplayHouseStatus">-</span></p>
-                    <p><strong>Тип оплаты:</strong> <span id="profileDisplayPaymentType">-</span></p>
-                    <p><strong>Дата создания:</strong> <span id="profileDisplayCreatedAt">-</span></p>
                 </div>
             </div>
         </div>

@@ -536,3 +536,161 @@ function logout() {
         window.location.href = 'user3.html';
     }
 }
+
+
+// ============ ФУНКЦИИ ДЛЯ ВКЛАДКИ НАДЁЖНОСТИ ============
+function showReliabilityTab() {
+    switchTab('reliability');
+    updateSystemMetrics();
+}
+
+function updateSystemMetrics() {
+    // Обновляем время
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    document.getElementById('system-metrics-update').textContent = timeStr;
+
+    // Генерируем случайные значения для метрик
+    const cpuUsage = 5 + Math.random() * 15; // 5-20%
+    const ramUsage = 25 + Math.random() * 15; // 25-40%
+    const diskUsage = 20 + Math.random() * 20; // 20-40%
+
+    // Обновляем значения CPU
+    document.getElementById('cpu-value').textContent = `${cpuUsage.toFixed(1)}%`;
+    document.getElementById('cpu-bar').style.width = `${cpuUsage}%`;
+    document.getElementById('cpu-temp').textContent = `${Math.round(35 + cpuUsage / 2)}°C`;
+
+    // Обновляем значения RAM
+    const ramUsed = (ramUsage / 100 * 4).toFixed(1);
+    const ramFree = (4 - ramUsed).toFixed(1);
+    document.getElementById('ram-value').textContent = `${ramUsed}GB / 4GB`;
+    document.getElementById('ram-bar').style.width = `${ramUsage}%`;
+    document.getElementById('ram-used').textContent = `${ramUsed}GB`;
+    document.getElementById('ram-free').textContent = `${ramFree}GB`;
+    document.getElementById('ram-percent').textContent = `${ramUsage.toFixed(1)}%`;
+
+    // Обновляем значения Disk
+    const diskUsed = (31 + Math.random() * 5).toFixed(1);
+    const diskFree = (120 - diskUsed).toFixed(1);
+    const diskPercent = (diskUsed / 120 * 100).toFixed(1);
+    document.getElementById('disk-value').textContent = `${diskFree}GB / 120GB`;
+    document.getElementById('disk-bar').style.width = `${diskPercent}%`;
+    document.getElementById('disk-free').textContent = `${diskFree}GB`;
+    document.getElementById('disk-used').textContent = `${diskUsed}GB`;
+    document.getElementById('disk-percent').textContent = `${diskPercent}%`;
+
+    // Анимируем графики
+    animateSystemGraphs(cpuUsage, ramUsage, diskUsage);
+    if (Math.random() > 0.8) {
+        addSystemEvent();
+    }
+}
+
+function animateSystemGraphs(cpu, ram, disk) {
+    // Анимация линий графика
+    const cpuLine = document.getElementById('cpu-line');
+    const ramLine = document.getElementById('ram-line');
+    const diskLine = document.getElementById('disk-line');
+
+    // Сбрасываем анимацию
+    cpuLine.style.animation = 'none';
+    ramLine.style.animation = 'none';
+    diskLine.style.animation = 'none';
+
+    // Запускаем заново
+    setTimeout(() => {
+        cpuLine.style.animation = 'drawLine 1.5s ease-out';
+        ramLine.style.animation = 'drawLine 1.5s ease-out 0.2s';
+        diskLine.style.animation = 'drawLine 1.5s ease-out 0.4s';
+    }, 10);
+
+    // Анимация изменения значений
+    const cards = ['cpu-card', 'ram-card', 'disk-card'];
+    cards.forEach(cardId => {
+        const card = document.getElementById(cardId);
+        card.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            card.style.transform = 'scale(1)';
+        }, 300);
+    });
+}
+
+// ============ ОБНОВЛЕНИЕ ФУНКЦИИ switchTab ============
+// Найдите функцию switchTab и добавьте обработку новой вкладки:
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabName).classList.add('active');
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+    if (tabName === 'monitoring') {
+        initAddressSelect();
+    } else if (tabName === 'notifications') {
+        loadNotifications();
+    } else if (tabName === 'buildings') {
+        loadBuildings();
+    } else if (tabName === 'reliability') {
+        updateSystemMetrics();
+        // Автообновление каждые 10 секунд
+        if (window.systemMetricsInterval) {
+            clearInterval(window.systemMetricsInterval);
+        }
+        window.systemMetricsInterval = setInterval(updateSystemMetrics, 10000);
+    } else {
+        if (autoUpdateInterval) {
+            clearInterval(autoUpdateInterval);
+        }
+        if (window.systemMetricsInterval) {
+            clearInterval(window.systemMetricsInterval);
+        }
+    }
+}
+
+function addSystemEvent() {
+    const events = [
+        {
+            icon: '✅',
+            title: 'Система стабильна',
+            desc: 'Все метрики в пределах нормы'
+        },
+        {
+            icon: '📊',
+            title: 'Обновление метрик',
+            desc: 'Системные метрики успешно обновлены'
+        },
+        {
+            icon: '🔧',
+            title: 'Фоновая оптимизация',
+            desc: 'Выполнена фоновая оптимизация БД'
+        }
+    ];
+
+    const event = events[Math.floor(Math.random() * events.length)];
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const eventsContainer = document.getElementById('system-events');
+    const newEvent = document.createElement('div');
+    newEvent.className = 'system-event';
+    newEvent.innerHTML = `
+        <div class="event-time">${timeStr}</div>
+        <div class="event-icon">${event.icon}</div>
+        <div class="event-content">
+            <div class="event-title">${event.title}</div>
+            <div class="event-desc">${event.desc}</div>
+        </div>
+    `;
+
+    // Добавляем в начало и ограничиваем количество
+    eventsContainer.insertBefore(newEvent, eventsContainer.firstChild);
+    if (eventsContainer.children.length > 10) {
+        eventsContainer.removeChild(eventsContainer.lastChild);
+    }
+}

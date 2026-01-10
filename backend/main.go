@@ -13,7 +13,8 @@ import (
 	"os"
 	"strings"
 	"time"
-
+	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	_ "github.com/lib/pq"
@@ -103,10 +104,10 @@ var (
 )
 
 func getEnvDefault(key, defaultValue string) string {
-    if value := os.Getenv(key); value != "" {
-        return value
-    }
-    return defaultValue
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
 
 // ============ MAIN ============
@@ -125,16 +126,14 @@ func main() {
 		MetricsPort:  getEnvDefault("METRICS_PORT", "2114"),
 	}
 
-	if cfg.PostgresURL == "" {
-		log.Fatal("❌ DATABASE_URL не установлена")
-	}
-
 	if cfg.InfluxURL == "" || cfg.InfluxToken == "" {
 		log.Fatal("❌ INFLUX_URL/INFLUX_TOKEN не установлены")
 	}
 
 	initMetrics()
-	initPostgres(cfg.PostgresURL)
+
+	initPostgres()
+
 	defer psqlConn.Close()
 
 	initTables()
@@ -181,28 +180,65 @@ func initMetrics() {
 	prometheus.MustRegister(influxWriteErrors)
 }
 
-func initPostgres(dsn string) {
-	log.Printf("DEBUG: DSN=%s", dsn)
-	var err error
-	psqlConn, err = sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatalf("Ошибка подключения к PostgreSQL: %v", err)
-	}
-
-	_, err = psqlConn.Exec("SET client_encoding = 'UTF8'")
-	if err != nil {
-		log.Printf("Предупреждение: Ошибка установки кодировки: %v", err)
-	}
-
-	if err := psqlConn.Ping(); err != nil {
-		log.Fatalf("Ошибка пинга PostgreSQL: %v", err)
-	}
-
-	log.Println("✓ Подключение к PostgreSQL успешно")
+func initPostgres() {
+    log.Println("Connect...")
+    
+    // Используем имя сервиса из Docker Compose
+    dsn := "postgres://admin:password@postgres:5432/smart_home?sslmode=disable"
+    
+    db, err := sql.Open("postgres", dsn)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Добавляем ретраи для подключения (PostgreSQL может запускаться медленнее)
+    var maxAttempts = 10
+    for i := 0; i < maxAttempts; i++ {
+        err = db.Ping()
+        if err == nil {
+            break
+        }
+        log.Printf("Attempt %d/%d failed: %v", i+1, maxAttempts, err)
+        time.Sleep(2 * time.Second)
+    }
+    
+    if err != nil {
+        log.Fatal("Failed to connect to PostgreSQL after multiple attempts: ", err)
+    }
+    
+    psqlConn = db
+    log.Println("✅ PostgreSQL Connected!")
 }
 
 func initTables() {
 	tables := []string{
+		`CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(50) UNIQUE NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            role VARCHAR(20) DEFAULT 'user',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
+		`CREATE TABLE IF NOT EXISTS building (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            address TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
+		`CREATE TABLE IF NOT EXISTS room (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            building_id INTEGER REFERENCES building(id),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
+		`CREATE TABLE IF NOT EXISTS device (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            room_id INTEGER REFERENCES room(id),
+            device_type VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
 		`CREATE TABLE IF NOT EXISTS user_devices (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
@@ -220,6 +256,20 @@ func initTables() {
 		} else {
 			log.Printf("✓ Таблица создана или уже существует")
 		}
+	}
+
+	// Создаем тестового пользователя admin
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+	_, err := psqlConn.Exec(`
+		INSERT INTO users (username, email, password, role) 
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (username) DO NOTHING
+	`, "admin", "admin@example.com", string(hashedPassword), "admin")
+	
+	if err != nil {
+		log.Printf("Ошибка создания пользователя admin: %v", err)
+	} else {
+		log.Println("✓ Пользователь admin создан или уже существует")
 	}
 }
 
@@ -943,9 +993,9 @@ func getSensorData(w http.ResponseWriter, r *http.Request) {
 // ============ СЕРВЕРЫ ============
 
 func startMetricsServer(port string) {
-    http.Handle("/metrics", promhttp.Handler())
-    log.Printf("Метрики доступны на http://localhost:%s/metrics\n", port)
-    log.Fatal(http.ListenAndServe(":"+port, nil))
+	http.Handle("/metrics", promhttp.Handler())
+	log.Printf("Метрики доступны на http://localhost:%s/metrics\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func startAPIServer(port string) {

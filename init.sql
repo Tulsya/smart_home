@@ -1,27 +1,3 @@
-SET search_path TO public;
-
--- Drop all tables if they exist (in correct order to avoid FK conflicts)
-DROP TABLE IF EXISTS user_profile_history CASCADE;
-DROP TABLE IF EXISTS device_logs CASCADE;
-DROP TABLE IF EXISTS user_devices CASCADE;
-DROP TABLE IF EXISTS settings CASCADE;
-DROP TABLE IF EXISTS state CASCADE;
-DROP TABLE IF EXISTS actuators CASCADE;
-DROP TABLE IF EXISTS sensor CASCADE;
-DROP TABLE IF EXISTS in_data CASCADE;
-DROP TABLE IF EXISTS out_data CASCADE;
-DROP TABLE IF EXISTS variables CASCADE;
-DROP TABLE IF EXISTS controller CASCADE;
-DROP TABLE IF EXISTS device CASCADE;
-DROP TABLE IF EXISTS room CASCADE;
-DROP TABLE IF EXISTS building CASCADE;
-DROP TABLE IF EXISTS workers CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-
--- ============================================
--- Create tables
--- ============================================
-
 -- Users table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -36,12 +12,12 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Workers table (теперь с связью к users)
+-- Workers table
 CREATE TABLE workers (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     full_name VARCHAR(255) NOT NULL,
-    "position" VARCHAR(100),
+    position VARCHAR(100),
     phone VARCHAR(20),
     email VARCHAR(100) UNIQUE,
     hired_at DATE,
@@ -62,7 +38,7 @@ CREATE TABLE room (
     building_id INTEGER NOT NULL REFERENCES building(id) ON DELETE CASCADE
 );
 
--- Devices table (теперь с привязкой к работнику)
+-- Devices table
 CREATE TABLE device (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -144,7 +120,7 @@ CREATE TABLE user_devices (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Device logs table (теперь с привязкой к работнику)
+-- Device logs table
 CREATE TABLE device_logs (
     id SERIAL PRIMARY KEY,
     device_id INTEGER REFERENCES device(id) ON DELETE CASCADE,
@@ -164,10 +140,7 @@ CREATE TABLE user_profile_history (
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================
--- Create indexes for better query performance
--- ============================================
-
+-- Create indexes
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
@@ -185,18 +158,14 @@ CREATE INDEX idx_device_logs_device ON device_logs(device_id);
 CREATE INDEX idx_device_logs_worker ON device_logs(worker_id);
 CREATE INDEX idx_user_profile_history_user ON user_profile_history(user_id);
 
--- ============================================
--- Insert test data
--- ============================================
-
--- Insert test users
+-- Insert test users (bcrypt хэш пароля "password")
 INSERT INTO users (username, email, password, role, house_status, payment_type) VALUES 
-('admin', 'admin@test.com', 'admin123', 'admin', 'День', 'Максимум'),
-('user1', 'user1@test.com', 'password123', 'user', 'День', 'Базовый'),
-('worker1', 'worker@test.com', 'worker123', 'worker', 'День', 'Базовый');
+('admin', 'admin@test.com', '$2a$10$XOPbrlUPQdwdJUpSrIF6X.LbE14qsMmKGhM1A8W9iqaG3vv1USG9O', 'admin', 'День', 'Максимум'),
+('user1', 'user1@test.com', '$2a$10$XOPbrlUPQdwdJUpSrIF6X.LbE14qsMmKGhM1A8W9iqaG3vv1USG9O', 'user', 'День', 'Базовый'),
+('worker1', 'worker@test.com', '$2a$10$XOPbrlUPQdwdJUpSrIF6X.LbE14qsMmKGhM1A8W9iqaG3vv1USG9O', 'worker', 'День', 'Базовый');
 
 -- Insert test workers (связаны с пользователями)
-INSERT INTO workers (user_id, full_name, "position", phone, email, hired_at) VALUES 
+INSERT INTO workers (user_id, full_name, position, phone, email, hired_at) VALUES 
 (3, 'Иван Петров', 'Инженер', '+7-999-123-45-67', 'ivan@company.com', '2023-01-15'),
 (NULL, 'Мария Сидорова', 'Техник', '+7-999-234-56-78', 'maria@company.com', '2023-02-20');
 
