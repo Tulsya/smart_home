@@ -414,6 +414,400 @@
             color: #666;
             font-size: 16px;
         }
+
+        /* ============ NOTIFICATIONS STYLES ============ */
+        .notifications-section {
+            margin: 20px 0;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .notifications-header h3 {
+            color: #333;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .notifications-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .notifications-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: #f9f9f9;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .notification-icon.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .notification-icon.critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .notification-icon.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .notification-sensor {
+            font-weight: 500;
+        }
+
+        .notification-time {
+            font-style: italic;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .notification-btn {
+            padding: 4px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .notification-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .notification-btn.resolve {
+            border-color: #28a745;
+            color: #28a745;
+        }
+
+        .notification-btn.resolve:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .no-notifications {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .filter-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: #f5f5f5;
+        }
+
+        /* ============ SENSOR READINGS STYLES ============ */
+        .sensor-readings-section {
+            margin: 30px 0;
+        }
+
+        .sensor-readings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sensor-readings-header h3 {
+            color: #333;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .sensor-readings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .sensor-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .sensor-card.critical {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .sensor-card.warning {
+            border-left-color: #ffc107;
+            background: #fff9e6;
+        }
+
+        .sensor-card.normal {
+            border-left-color: #28a745;
+        }
+
+        .sensor-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .sensor-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .sensor-room {
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .sensor-type {
+            font-size: 12px;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sensor-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .sensor-unit {
+            font-size: 14px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .sensor-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-normal {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .sensor-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .sensor-last-update {
+            font-style: italic;
+        }
+
+        .sensor-battery {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .battery-low {
+            color: #dc3545;
+        }
+
+        .battery-medium {
+            color: #ffc107;
+        }
+
+        .battery-high {
+            color: #28a745;
+        }
+
+        .sensor-chart-container {
+            height: 60px;
+            margin: 15px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sensor-chart {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            padding: 5px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            margin: 0 1px;
+            background: #667eea;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s;
+        }
+
+        .chart-bar:nth-child(even) {
+            background: #764ba2;
+        }
+
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+
+        .sensor-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sensor-control-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .sensor-control-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .sensor-control-btn.primary {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .sensor-control-btn.primary:hover {
+            background: #5a67d8;
+        }
     </style>
 </head>
 
@@ -682,9 +1076,718 @@
         </div>
     </div>
 
+    <!-- ============ PROFILE PAGE ============ -->
+    <div id="profilePage" class="user-page" style="display: none;">
+        <div class="header">
+            <h1>Smart Home - Мой Профиль</h1>
+            <div class="user-info-header">
+                <span id="profileUsername"></span>
+                <button class="logout-btn" onclick="goBackToSetup()" style="background: #667eea; margin-right: 10px;">←
+                    Вернуться</button>
+                <button class="logout-btn" onclick="logout()">Выход</button>
+            </div>
+        </div>
+
+        <div class="container-main">
+            <div class="step-card">
+                <h2><span class="step-number">⚙️</span> Мой Профиль</h2>
+
+                <!-- СТАТУС ДОМА -->
+                <div style="margin: 20px 0;">
+                    <label style="font-weight: bold; color: #333; margin-bottom: 10px; display: block;">Статус
+                        твоего дома:</label>
+                    <select id="houseStatusSelect"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <option value="">Выберите статус</option>
+                        <option value="День">День</option>
+                        <option value="Ночь">Ночь</option>
+                        <option value="Отсутствие">Отсутствие</option>
+                    </select>
+                </div>
+
+                <!-- ТИП ОПЛАТЫ -->
+                <div style="margin: 20px 0;">
+                    <label style="font-weight: bold; color: #333; margin-bottom: 10px; display: block;">Тип
+                        оплаты:</label>
+                    <select id="paymentTypeSelect"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <option value="">Выберите тип</option>
+                        <option value="Базовый">Экономный</option>
+                        <option value="Стандарт">Стандарт</option>
+                        <option value="Премиум">Премиум</option>
+                    </select>
+                </div>
+
+                <!-- ПЛАНИРОВКА -->
+                <div style="margin: 20px 0;">
+                    <label style="font-weight: bold; color: #333; margin-bottom: 10px; display: block;">Фото
+                        планировки:</label>
+                    <input type="file" id="floorplanImageInput" accept="image/*"
+                        style="display: block; margin: 10px 0;">
+                    <div id="floorplanImagePreview" style="margin-top: 10px;"></div>
+                </div>
+
+                <!-- НОВЫЙ РАЗДЕЛ: УВЕДОМЛЕНИЯ С ДАТЧИКОВ -->
+                <div class="notifications-section">
+                    <div class="notifications-header">
+                        <h3><span class="step-number">🔔</span> Уведомления с датчиков</h3>
+                        <div class="notifications-count" id="notificationsCount">0</div>
+                    </div>
+
+                    <!-- ФИЛЬТРЫ УВЕДОМЛЕНИЙ -->
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterNotifications('all')">Все</button>
+                        <button class="filter-tab" onclick="filterNotifications('critical')">Критические</button>
+                        <button class="filter-tab" onclick="filterNotifications('warning')">Предупреждения</button>
+                        <button class="filter-tab" onclick="filterNotifications('info')">Информационные</button>
+                    </div>
+
+                    <!-- КОНТЕЙНЕР УВЕДОМЛЕНИЙ -->
+                    <div class="notifications-container" id="notificationsContainer">
+                        <!-- Уведомления будут загружаться динамически -->
+                        <div class="no-notifications">
+                            <p style="font-size: 16px; color: #999; margin-bottom: 10px;">📭</p>
+                            <p>Нет новых уведомлений</p>
+                            <p style="font-size: 12px; margin-top: 5px;">Все системы работают нормально</p>
+                        </div>
+                    </div>
+
+                    <!-- КНОПКА ОБНОВЛЕНИЯ -->
+                    <button class="btn btn-primary" onclick="refreshNotifications()" 
+                            style="margin-top: 15px; width: 100%; padding: 10px;">
+                        🔄 Обновить уведомления
+                    </button>
+                </div>
+
+                <!-- НОВЫЙ РАЗДЕЛ: ТЕКУЩИЕ ПОКАЗАНИЯ ДАТЧИКОВ -->
+                <div class="sensor-readings-section">
+                    <div class="sensor-readings-header">
+                        <h3><span class="step-number">📊</span> Текущие показания датчиков</h3>
+                        <button class="btn btn-primary" onclick="refreshSensorReadings()" 
+                                style="padding: 8px 16px; font-size: 14px;">
+                            🔄 Обновить данные
+                        </button>
+                    </div>
+
+                    <!-- ФИЛЬТРЫ ДЛЯ ДАТЧИКОВ -->
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterSensors('all')">Все датчики</button>
+                        <button class="filter-tab" onclick="filterSensors('temperature')">🌡️ Температура</button>
+                        <button class="filter-tab" onclick="filterSensors('humidity')">💧 Влажность</button>
+                        <button class="filter-tab" onclick="filterSensors('motion')">🚶‍♂️ Движение</button>
+                        <button class="filter-tab" onclick="filterSensors('smoke')">🔥 Задымление</button>
+                    </div>
+
+                    <!-- СЕТКА ДАТЧИКОВ -->
+                    <div class="sensor-readings-grid" id="sensorReadingsGrid">
+                        <!-- Датчики будут загружаться динамически -->
+                        <div class="no-sensors">
+                            <p style="font-size: 16px; color: #999; margin-bottom: 10px;">📡</p>
+                            <p>Нет данных с датчиков</p>
+                            <p style="font-size: 12px; margin-top: 5px;">Подключите датчики для отслеживания</p>
+                        </div>
+                    </div>
+
+                    <!-- СТАТИСТИКА -->
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-around; text-align: center;">
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: #667eea;" id="activeSensorsCount">0</div>
+                                <div style="font-size: 12px; color: #666;">Активных датчиков</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: #28a745;" id="normalSensorsCount">0</div>
+                                <div style="font-size: 12px; color: #666;">В норме</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: #ffc107;" id="warningSensorsCount">0</div>
+                                <div style="font-size: 12px; color: #666;">Предупреждения</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: #dc3545;" id="criticalSensorsCount">0</div>
+                                <div style="font-size: 12px; color: #666;">Критические</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- КНОПКА СОХРАНЕНИЯ -->
+                <button class="save-btn" onclick="saveProfileChanges()" style="margin-top: 20px;">💾 Сохранить
+                    изменения</button>
+
+                <!-- СООБЩЕНИЕ О УСПЕХЕ -->
+                <div class="success-message" id="profileSuccessMessage" style="margin-top: 20px;">
+                    ✅ Профиль успешно обновлен!
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = 'http://localhost:8082/api/auth';
         const API_USER_SETUP = 'http://localhost:8082/api/user/setup';
+        
+        // ============ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ============
+        let currentUser = null;
+        let userSetupData = {
+            paymentType: '',
+            floorplan: null,
+            rooms: {},
+            devices: []
+        };
+        let currentFilter = 'all';
+        let sensorFilter = 'all';
+        let notifications = [];
+        let sensors = [];
+
+        // ============ УВЕДОМЛЕНИЯ С ДАТЧИКОВ ============
+        
+        // Мок-данные для уведомлений
+        const mockNotifications = [
+            {
+                id: 1,
+                type: 'critical',
+                title: 'Критическое событие',
+                message: 'Датчик дыма в кухне обнаружил задымление!',
+                sensor: 'Датчик дыма - Кухня',
+                time: '2 минуты назад',
+                timestamp: new Date(Date.now() - 120000).toISOString(),
+                resolved: false
+            },
+            {
+                id: 2,
+                type: 'warning',
+                title: 'Высокая температура',
+                message: 'Температура в гостиной превысила 28°C',
+                sensor: 'Датчик температуры - Гостиная',
+                time: '15 минут назад',
+                timestamp: new Date(Date.now() - 900000).toISOString(),
+                resolved: false
+            },
+            {
+                id: 3,
+                type: 'info',
+                title: 'Открыто окно',
+                message: 'Окно в спальне открыто более 2 часов',
+                sensor: 'Датчик окна - Спальня',
+                time: '1 час назад',
+                timestamp: new Date(Date.now() - 3600000).toISOString(),
+                resolved: true
+            },
+            {
+                id: 4,
+                type: 'warning',
+                title: 'Низкий заряд батареи',
+                message: 'Датчик движения в коридоре требует замены батареи',
+                sensor: 'Датчик движения - Коридор',
+                time: '3 часа назад',
+                timestamp: new Date(Date.now() - 10800000).toISOString(),
+                resolved: false
+            },
+            {
+                id: 5,
+                type: 'success',
+                title: 'Система восстановлена',
+                message: 'Связь с контроллером освещения восстановлена',
+                sensor: 'Контроллер освещения',
+                time: '5 часов назад',
+                timestamp: new Date(Date.now() - 18000000).toISOString(),
+                resolved: true
+            }
+        ];
+
+        // Мок-данные для датчиков
+        const mockSensors = [
+            {
+                id: 1,
+                name: 'Температура',
+                type: 'temperature',
+                room: 'Гостиная',
+                value: 22.5,
+                unit: '°C',
+                status: 'normal',
+                minValue: 18,
+                maxValue: 26,
+                currentValue: 22.5,
+                battery: 85,
+                lastUpdate: '2 минуты назад',
+                history: [22, 22.3, 22.5, 22.4, 22.6, 22.5, 22.7]
+            },
+            {
+                id: 2,
+                name: 'Влажность',
+                type: 'humidity',
+                room: 'Гостиная',
+                value: 45,
+                unit: '%',
+                status: 'normal',
+                minValue: 30,
+                maxValue: 60,
+                currentValue: 45,
+                battery: 72,
+                lastUpdate: '5 минут назад',
+                history: [42, 43, 44, 45, 45, 44, 45]
+            },
+            {
+                id: 3,
+                name: 'Температура',
+                type: 'temperature',
+                room: 'Спальня',
+                value: 19.8,
+                unit: '°C',
+                status: 'normal',
+                minValue: 18,
+                maxValue: 24,
+                currentValue: 19.8,
+                battery: 90,
+                lastUpdate: '1 минуту назад',
+                history: [19.5, 19.6, 19.7, 19.8, 19.8, 19.9, 19.8]
+            },
+            {
+                id: 4,
+                name: 'Датчик дыма',
+                type: 'smoke',
+                room: 'Кухня',
+                value: 0,
+                unit: 'ppm',
+                status: 'critical',
+                minValue: 0,
+                maxValue: 50,
+                currentValue: 150,
+                battery: 45,
+                lastUpdate: 'Только что',
+                history: [0, 0, 0, 50, 100, 150, 150]
+            },
+            {
+                id: 5,
+                name: 'Движение',
+                type: 'motion',
+                room: 'Коридор',
+                value: 'Обнаружено',
+                unit: '',
+                status: 'warning',
+                minValue: 0,
+                maxValue: 1,
+                currentValue: 1,
+                battery: 25,
+                lastUpdate: '10 минут назад',
+                history: [0, 0, 1, 1, 0, 0, 1]
+            },
+            {
+                id: 6,
+                name: 'Освещенность',
+                type: 'light',
+                room: 'Гостиная',
+                value: 320,
+                unit: 'lux',
+                status: 'normal',
+                minValue: 0,
+                maxValue: 1000,
+                currentValue: 320,
+                battery: 60,
+                lastUpdate: '3 минуты назад',
+                history: [300, 310, 315, 320, 325, 320, 320]
+            },
+            {
+                id: 7,
+                name: 'Влажность',
+                type: 'humidity',
+                room: 'Ванная',
+                value: 65,
+                unit: '%',
+                status: 'warning',
+                minValue: 30,
+                maxValue: 60,
+                currentValue: 65,
+                battery: 80,
+                lastUpdate: '15 минут назад',
+                history: [55, 58, 60, 62, 64, 65, 65]
+            },
+            {
+                id: 8,
+                name: 'Окно',
+                type: 'window',
+                room: 'Спальня',
+                value: 'Открыто',
+                unit: '',
+                status: 'warning',
+                minValue: 0,
+                maxValue: 1,
+                currentValue: 1,
+                battery: 40,
+                lastUpdate: '2 часа назад',
+                history: [1, 1, 1, 1, 1, 1, 1]
+            }
+        ];
+
+        // Загрузка уведомлений
+        function loadNotifications() {
+            // В реальном проекте здесь будет fetch запрос к API
+            notifications = [...mockNotifications];
+            renderNotifications();
+        }
+
+        // Загрузка данных с датчиков
+        function loadSensorReadings() {
+            // В реальном проекте здесь будет fetch запрос к API
+            sensors = [...mockSensors];
+            renderSensorReadings();
+            updateSensorStatistics();
+        }
+
+        // Отображение уведомлений
+        function renderNotifications() {
+            const container = document.getElementById('notificationsContainer');
+            const countElement = document.getElementById('notificationsCount');
+            
+            // Фильтрация уведомлений
+            let filteredNotifications = notifications;
+            if (currentFilter !== 'all') {
+                filteredNotifications = notifications.filter(n => n.type === currentFilter);
+            }
+            
+            // Подсчет нерешённых уведомлений
+            const unresolvedCount = notifications.filter(n => !n.resolved).length;
+            countElement.textContent = unresolvedCount;
+            
+            if (filteredNotifications.length === 0) {
+                container.innerHTML = `
+                    <div class="no-notifications">
+                        <p style="font-size: 16px; color: #999; margin-bottom: 10px;">📭</p>
+                        <p>Нет уведомлений по выбранному фильтру</p>
+                        <p style="font-size: 12px; margin-top: 5px;">Попробуйте изменить фильтр</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredNotifications.map(notification => `
+                <div class="notification-item ${notification.resolved ? 'resolved' : ''}">
+                    <div class="notification-icon ${notification.type}">
+                        ${getNotificationIcon(notification.type)}
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-meta">
+                            <span class="notification-sensor">${notification.sensor}</span>
+                            <span class="notification-time">${notification.time}</span>
+                        </div>
+                        ${!notification.resolved ? `
+                            <div class="notification-actions">
+                                <button class="notification-btn resolve" onclick="resolveNotification(${notification.id})">
+                                    ✅ Отметить как решённое
+                                </button>
+                                <button class="notification-btn" onclick="ignoreNotification(${notification.id})">
+                                    ✖️ Игнорировать
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Отображение данных с датчиков
+        function renderSensorReadings() {
+            const container = document.getElementById('sensorReadingsGrid');
+            
+            // Фильтрация датчиков
+            let filteredSensors = sensors;
+            if (sensorFilter !== 'all') {
+                filteredSensors = sensors.filter(s => s.type === sensorFilter);
+            }
+            
+            if (filteredSensors.length === 0) {
+                container.innerHTML = `
+                    <div class="no-sensors" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: #999;">
+                        <p style="font-size: 16px; color: #999; margin-bottom: 10px;">📡</p>
+                        <p>Нет датчиков по выбранному фильтру</p>
+                        <p style="font-size: 12px; margin-top: 5px;">Попробуйте изменить фильтр</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredSensors.map(sensor => `
+                <div class="sensor-card ${sensor.status}">
+                    <div class="sensor-card-header">
+                        <div class="sensor-name">${getSensorIcon(sensor.type)} ${sensor.name}</div>
+                        <div class="sensor-room">${sensor.room}</div>
+                    </div>
+                    
+                    <div class="sensor-type">
+                        ${getSensorTypeName(sensor.type)}
+                    </div>
+                    
+                    <div class="sensor-value">
+                        ${sensor.currentValue} <span class="sensor-unit">${sensor.unit}</span>
+                    </div>
+                    
+                    <div class="sensor-chart-container">
+                        <div class="sensor-chart">
+                            ${sensor.history.map((value, index) => `
+                                <div class="chart-bar" 
+                                     style="height: ${calculateBarHeight(value, sensor.minValue, sensor.maxValue)}%"
+                                     title="${getTimeLabel(index)}: ${value}${sensor.unit}">
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="sensor-status status-${sensor.status}">
+                        ${getStatusText(sensor.status)}
+                    </div>
+                    
+                    <div class="sensor-meta">
+                        <div class="sensor-last-update">${sensor.lastUpdate}</div>
+                        <div class="sensor-battery ${getBatteryClass(sensor.battery)}">
+                            🔋 ${sensor.battery}%
+                        </div>
+                    </div>
+                    
+                    <div class="sensor-controls">
+                        <button class="sensor-control-btn" onclick="showSensorDetails(${sensor.id})">
+                            📈 Подробнее
+                        </button>
+                        <button class="sensor-control-btn primary" onclick="calibrateSensor(${sensor.id})">
+                            ⚙️ Калибровка
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Обновление статистики датчиков
+        function updateSensorStatistics() {
+            const activeCount = sensors.length;
+            const normalCount = sensors.filter(s => s.status === 'normal').length;
+            const warningCount = sensors.filter(s => s.status === 'warning').length;
+            const criticalCount = sensors.filter(s => s.status === 'critical').length;
+            
+            document.getElementById('activeSensorsCount').textContent = activeCount;
+            document.getElementById('normalSensorsCount').textContent = normalCount;
+            document.getElementById('warningSensorsCount').textContent = warningCount;
+            document.getElementById('criticalSensorsCount').textContent = criticalCount;
+        }
+
+        // Вспомогательные функции для датчиков
+        function getSensorIcon(type) {
+            const icons = {
+                'temperature': '🌡️',
+                'humidity': '💧',
+                'motion': '🚶‍♂️',
+                'smoke': '🔥',
+                'light': '💡',
+                'window': '🪟',
+                'door': '🚪'
+            };
+            return icons[type] || '📡';
+        }
+
+        function getSensorTypeName(type) {
+            const names = {
+                'temperature': 'Датчик температуры',
+                'humidity': 'Датчик влажности',
+                'motion': 'Датчик движения',
+                'smoke': 'Датчик дыма',
+                'light': 'Датчик освещенности',
+                'window': 'Датчик окна',
+                'door': 'Датчик двери'
+            };
+            return names[type] || 'Датчик';
+        }
+
+        function calculateBarHeight(value, min, max) {
+            const range = max - min;
+            if (range === 0) return 50;
+            return Math.min(100, Math.max(0, ((value - min) / range) * 100));
+        }
+
+        function getTimeLabel(index) {
+            const labels = ['6ч', '5ч', '4ч', '3ч', '2ч', '1ч', 'сейчас'];
+            return labels[index] || '';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'normal': 'В норме',
+                'warning': 'Предупреждение',
+                'critical': 'Критично'
+            };
+            return texts[status] || status;
+        }
+
+        function getBatteryClass(battery) {
+            if (battery < 20) return 'battery-low';
+            if (battery < 50) return 'battery-medium';
+            return 'battery-high';
+        }
+
+        // Фильтрация датчиков
+        function filterSensors(filter) {
+            sensorFilter = filter;
+            
+            // Обновление активной вкладки
+            document.querySelectorAll('.sensor-readings-section .filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(filter) || 
+                    (filter === 'all' && tab.textContent.includes('Все датчики'))) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            renderSensorReadings();
+        }
+
+        // Обновление показаний датчиков
+        function refreshSensorReadings() {
+            // Симуляция обновления данных
+            sensors.forEach(sensor => {
+                // Генерация случайных изменений значений
+                const change = (Math.random() - 0.5) * 2;
+                if (typeof sensor.currentValue === 'number') {
+                    sensor.currentValue = parseFloat((sensor.currentValue + change).toFixed(1));
+                    
+                    // Обновление статуса на основе значений
+                    if (sensor.type === 'temperature' && sensor.currentValue > 28) {
+                        sensor.status = 'warning';
+                    } else if (sensor.type === 'smoke' && sensor.currentValue > 100) {
+                        sensor.status = 'critical';
+                    } else if (sensor.type === 'humidity' && sensor.currentValue > 60) {
+                        sensor.status = 'warning';
+                    } else {
+                        sensor.status = 'normal';
+                    }
+                    
+                    // Обновление истории
+                    sensor.history.shift();
+                    sensor.history.push(sensor.currentValue);
+                }
+                
+                // Обновление времени
+                sensor.lastUpdate = 'Только что';
+            });
+            
+            renderSensorReadings();
+            updateSensorStatistics();
+            showTemporaryMessage('✅ Данные датчиков обновлены');
+        }
+
+        // Просмотр деталей датчика
+        function showSensorDetails(sensorId) {
+            const sensor = sensors.find(s => s.id === sensorId);
+            if (sensor) {
+                alert(`Детали датчика "${sensor.name}" (${sensor.room}):\n` +
+                      `Текущее значение: ${sensor.currentValue}${sensor.unit}\n` +
+                      `Диапазон нормы: ${sensor.minValue}-${sensor.maxValue}${sensor.unit}\n` +
+                      `Статус: ${getStatusText(sensor.status)}\n` +
+                      `Заряд батареи: ${sensor.battery}%\n` +
+                      `Последнее обновление: ${sensor.lastUpdate}`);
+            }
+        }
+
+        // Калибровка датчика
+        function calibrateSensor(sensorId) {
+            const sensor = sensors.find(s => s.id === sensorId);
+            if (sensor) {
+                const newMin = prompt(`Введите минимальное нормальное значение для ${sensor.name} (${sensor.room}):`, sensor.minValue);
+                const newMax = prompt(`Введите максимальное нормальное значение для ${sensor.name} (${sensor.room}):`, sensor.maxValue);
+                
+                if (newMin !== null && newMax !== null) {
+                    sensor.minValue = parseFloat(newMin);
+                    sensor.maxValue = parseFloat(newMax);
+                    showTemporaryMessage(`✅ Датчик "${sensor.name}" откалиброван`);
+                    renderSensorReadings();
+                }
+            }
+        }
+
+        // ============ ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений) ============
+
+        // Получение иконки для типа уведомления
+        function getNotificationIcon(type) {
+            const icons = {
+                'critical': '🔥',
+                'warning': '⚠️',
+                'info': 'ℹ️',
+                'success': '✅'
+            };
+            return icons[type] || '📢';
+        }
+
+        // Фильтрация уведомлений
+        function filterNotifications(filter) {
+            currentFilter = filter;
+            
+            // Обновление активной вкладки
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(filter)) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            renderNotifications();
+        }
+
+        // Отметить уведомление как решённое
+        function resolveNotification(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.resolved = true;
+                notification.resolvedTime = new Date().toLocaleTimeString();
+                renderNotifications();
+            }
+        }
+
+        // Игнорировать уведомление
+        function ignoreNotification(notificationId) {
+            notifications = notifications.filter(n => n.id !== notificationId);
+            renderNotifications();
+        }
+
+        // Обновить уведомления
+        function refreshNotifications() {
+            const newNotification = {
+                id: notifications.length + 1,
+                type: 'info',
+                title: 'Новое уведомление',
+                message: 'Проверка системы выполнена успешно',
+                sensor: 'Системный монитор',
+                time: 'Только что',
+                timestamp: new Date().toISOString(),
+                resolved: false
+            };
+            
+            notifications.unshift(newNotification);
+            renderNotifications();
+            showTemporaryMessage('✅ Уведомления обновлены');
+        }
+
+        // Показать временное сообщение
+        function showTemporaryMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => messageDiv.remove(), 300);
+            }, 3000);
+        }
 
         // ============ AUTHENTICATION ============
 
@@ -777,13 +1880,6 @@
 
         // ============ USER PAGE ============
 
-        let userSetupData = {
-            paymentType: '',
-            floorplan: null,
-            rooms: {},
-            devices: []
-        };
-
         function showUserPage(userData) {
             currentUser = userData;
             document.getElementById('authPage').style.display = 'none';
@@ -803,6 +1899,7 @@
             };
             document.getElementById('authPage').style.display = 'flex';
             document.getElementById('userPage').style.display = 'none';
+            document.getElementById('profilePage').style.display = 'none';
             document.getElementById('registerForm').reset();
             document.getElementById('loginForm').reset();
             document.getElementById('registerCard').classList.remove('hidden');
@@ -1009,80 +2106,15 @@
             reader.readAsDataURL(file);
         }
 
-    </script>
-
-    <!-- ФУНКЦИИ НАВИГАЦИИ ПРОФИЛЯ -->
-    <div id="profilePage" class="user-page" style="display: none;">
-        <div class="header">
-            <h1>Smart Home - Мой Профиль</h1>
-            <div class="user-info-header">
-                <span id="profileUsername"></span>
-                <button class="logout-btn" onclick="goBackToSetup()" style="background: #667eea; margin-right: 10px;">←
-                    Вернуться</button>
-                <button class="logout-btn" onclick="logout()">Выход</button>
-            </div>
-        </div>
-
-        <div class="container-main">
-            <div class="step-card">
-                <h2><span class="step-number">⚙️</span> Мой Профиль</h2>
-
-                <!-- СТАТУС ДОМА -->
-                <div style="margin: 20px 0;">
-                    <label style="font-weight: bold; color: #333; margin-bottom: 10px; display: block;">Статус
-                        твоего дома:</label>
-                    <select id="houseStatusSelect"
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                        <option value="">Выберите статус</option>
-                        <option value="День">День</option>
-                        <option value="Ночь">Ночь</option>
-                        <option value="Отсутствие">Отсутствие</option>
-                    </select>
-                </div>
-
-                <!-- ТИП ОПЛАТЫ -->
-                <div style="margin: 20px 0;">
-                    <label style="font-weight: bold; color: #333; margin-bottom: 10px; display: block;">Тип
-                        оплаты:</label>
-                    <select id="paymentTypeSelect"
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-                        <option value="">Выберите тип</option>
-                        <option value="Базовый">Экономный</option>
-                        <option value="Стандарт">Стандарт</option>
-                        <option value="Премиум">Премиум</option>
-                    </select>
-                </div>
-
-                <!-- ПЛАНИРОВКА -->
-                <div style="margin: 20px 0;">
-                    <label style="font-weight: bold; color: #333; margin-bottom: 10px; display: block;">Фото
-                        планировки:</label>
-                    <input type="file" id="floorplanImageInput" accept="image/*"
-                        style="display: block; margin: 10px 0;">
-                    <div id="floorplanImagePreview" style="margin-top: 10px;"></div>
-                </div>
-
-                <!-- КНОПКА СОХРАНЕНИЯ -->
-                <button class="save-btn" onclick="saveProfileChanges()" style="margin-top: 20px;">💾 Сохранить
-                    изменения</button>
-
-                <!-- СООБЩЕНИЕ О УСПЕХЕ -->
-                <div class="success-message" id="profileSuccessMessage" style="margin-top: 20px;">
-                    ✅ Профиль успешно обновлен!
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT -->
-    <script>
-        let currentUser = null;
+        // ============ PROFILE FUNCTIONS ============
 
         function showProfilePage() {
             document.getElementById("authPage").style.display = "none";
             document.getElementById("userPage").style.display = "none";
             document.getElementById("profilePage").style.display = "block";
             loadProfileData();
+            loadNotifications(); // Загружаем уведомления при открытии профиля
+            loadSensorReadings(); // Загружаем показания датчиков
         }
 
         function goBackToSetup() {
@@ -1102,13 +2134,6 @@
 
                 // Заполнить формы
                 document.getElementById("profileUsername").textContent = profile.username;
-                document.getElementById("profileDisplayUsername").textContent = profile.username;
-                document.getElementById("profileDisplayEmail").textContent = profile.email;
-                document.getElementById("profileDisplayHouseStatus").textContent = profile.house_status || "Не указан";
-                document.getElementById("profileDisplayPaymentType").textContent = profile.payment_type || "Не указан";
-                document.getElementById("profileDisplayCreatedAt").textContent = new Date(profile.created_at).toLocaleDateString("ru-RU");
-
-                // Установить текущие значения в селекты
                 if (profile.house_status) {
                     document.getElementById("houseStatusSelect").value = profile.house_status;
                 }
@@ -1119,6 +2144,11 @@
                 currentUser = user;
             } catch (error) {
                 console.error("Ошибка загрузки профиля:", error);
+                // Для демонстрации используем данные из localStorage
+                const user = JSON.parse(localStorage.getItem("user"));
+                if (user) {
+                    document.getElementById("profileUsername").textContent = user.username;
+                }
             }
         }
 
@@ -1130,7 +2160,7 @@
             const floorplanFile = document.getElementById("floorplanImageInput").files[0];
 
             try {
-                // 1. Обновляем статус и тип оплаты (БЕЗ картинки)
+                // 1. Обновляем статус и тип оплаты
                 const profileRes = await fetch(
                     `http://localhost:8082/api/user/profile?id=${currentUser.id}`,
                     {
@@ -1139,7 +2169,6 @@
                         body: JSON.stringify({
                             housestatus: houseStatus,
                             paymenttype: paymentType
-                            // floorplanimage не шлём
                         })
                     }
                 );
@@ -1148,7 +2177,7 @@
                     throw new Error("Ошибка обновления профиля");
                 }
 
-                // 2. Если выбрана картинка – отдельный запрос multipart на /api/user/floorplan
+                // 2. Если выбрана картинка
                 if (floorplanFile) {
                     const formData = new FormData();
                     formData.append("floorplan", floorplanFile);
@@ -1166,7 +2195,7 @@
                     }
                 }
 
-                // 3. Показать сообщение об успехе и перезагрузить данные профиля
+                // 3. Показать сообщение об успехе
                 const successMsg = document.getElementById("profileSuccessMessage");
                 if (successMsg) {
                     successMsg.style.display = "block";
@@ -1182,14 +2211,34 @@
             }
         }
 
-
         // Загрузить профиль при открытии
         window.addEventListener("load", () => {
             const savedUser = localStorage.getItem("user");
             if (savedUser) currentUser = JSON.parse(savedUser);
         });
-    </script>
 
+        // Добавляем стили для анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            .notification-item.resolved {
+                opacity: 0.7;
+                background: #f9f9f9;
+            }
+            .notification-item.resolved .notification-title {
+                text-decoration: line-through;
+                color: #999;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 
 </html>
