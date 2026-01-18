@@ -1083,3 +1083,25 @@ func corsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// Обдумать где использовать
+// func (o *UtilityOptimizer) CalculateOptimalSettings(sensorData map[string]interface{}) map[string]interface{} {
+//     currentHour := time.Now().Hour()
+//     isPeakHour := currentHour >= 6 && currentHour <= 22
+    
+//     recommendations := make(map[string]interface{})
+    
+//     // Отключение освещения при отсутствии людей
+//     if motionDetected, ok := sensorData["motion"].(bool); ok && !motionDetected {
+//         recommendations["lighting"] = "off"
+//         recommendations["ac_mode"] = "minimum"
+//     }
+    
+//     // Для экономного тарифа - агрессивная оптимизация
+//     if o.rateType == "economy" && !isPeakHour {
+//         recommendations["ac_mode"] = "eco"
+//     }
+    
+//     return recommendations
+// }
+

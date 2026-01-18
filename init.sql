@@ -208,3 +208,7 @@ INSERT INTO device_logs (device_id, worker_id, action, data) VALUES
 (1, 1, 'maintenance', 'Проверка и очистка'),
 (2, 1, 'repair', 'Замена фильтра'),
 (3, 2, 'inspection', 'Диагностика');
+
+ALTER TABLE device ADD COLUMN description TEXT;
+ALTER TABLE device ADD COLUMN serial_number VARCHAR(100);
+ALTER TABLE device ADD COLUMN model VARCHAR(100);
